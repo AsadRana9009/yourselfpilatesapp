@@ -1,0 +1,36 @@
+/* Header component Style */
+
+/* Logo Container */
+.logo-container {
+  display: inline-block;
+  transform-origin: bottom left;
+}
+
+/* Phone Link - All Variants */
+.phone-link-mobile,
+.phone-link-tablet,
+.phone-link-desktop {
+  background-color: rgba(136, 169, 195, 0.2);
+}
+
+/* Phone Icon */
+.phone-icon {
+  color: #88a9c3;
+}
+
+/* Phone Number Text */
+.phone-number {
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 16px;
+  color: rgb(21, 70, 125);
+}
+
+/* Phone Subtitle Text */
+.phone-subtitle {
+  margin-top: 0.5rem;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 12px;
+  color: rgb(21, 70, 125);
+}
