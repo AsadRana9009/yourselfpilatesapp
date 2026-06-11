@@ -28,9 +28,8 @@ export default function BookingCalendar() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle booking submission
     alert(
-      `Booking for ${name} on ${selectedDate?.toLocaleDateString()} at ${selectedTime}`
+      `Booking for ${name} on ${selectedDate?.toLocaleDateString()} at ${selectedTime}`,
     );
   };
 
@@ -49,7 +48,6 @@ export default function BookingCalendar() {
             </CardHeader>
             <CardContent className="space-y-8">
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                {/* Calendar Section */}
                 <div className="space-y-4">
                   <h3 className="text-secondary text-lg font-semibold">
                     Selecione a Data
@@ -76,13 +74,11 @@ export default function BookingCalendar() {
                   )}
                 </div>
 
-                {/* Booking Form Section */}
                 <div className="space-y-6">
                   <h3 className="text-secondary text-lg font-semibold">
                     Informações da Reserva
                   </h3>
                   <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Time Slot Selection */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Horário</label>
                       <Select
@@ -107,7 +103,6 @@ export default function BookingCalendar() {
                       </Select>
                     </div>
 
-                    {/* Name Field */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium">
                         Nome Completo
@@ -121,7 +116,6 @@ export default function BookingCalendar() {
                       />
                     </div>
 
-                    {/* Email Field */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Email</label>
                       <Input
@@ -133,7 +127,6 @@ export default function BookingCalendar() {
                       />
                     </div>
 
-                    {/* Phone Field */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Telefone</label>
                       <Input
@@ -145,7 +138,6 @@ export default function BookingCalendar() {
                       />
                     </div>
 
-                    {/* Submit Button */}
                     <Button
                       type="submit"
                       className="bg-gradient-button w-full"
@@ -155,7 +147,6 @@ export default function BookingCalendar() {
                     </Button>
                   </form>
 
-                  {/* Info Note */}
                   <p className="text-muted-foreground text-center text-xs">
                     Receberá um email de confirmação após a reserva
                   </p>

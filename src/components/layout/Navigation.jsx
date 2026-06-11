@@ -28,7 +28,7 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="flex items-center space-x-9 text-[19px] font-normal transition-colors duration-200">
+    <nav className="flex items-center space-x-5 text-[19px] font-normal transition-colors duration-200">
       {navItems.map((item) => {
         const isActive = pathname === item.href;
 

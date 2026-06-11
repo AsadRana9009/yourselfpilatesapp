@@ -11,7 +11,6 @@ const CTAInfoText = () => {
         href="/contactos"
         className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:text-left"
       >
-        {/* Logo */}
         <div className="relative h-12 w-12 sm:h-10 sm:w-10">
           <Image
             src="/icons/DarkLogo.png"
@@ -21,7 +20,6 @@ const CTAInfoText = () => {
           />
         </div>
 
-        {/* Text */}
         <p className="md:text-1xl text-lg font-normal text-[#15467d] underline sm:text-xl">
           Gostava de agendar uma visita ou entrar em contacto
         </p>

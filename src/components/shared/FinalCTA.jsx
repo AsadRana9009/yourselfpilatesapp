@@ -5,9 +5,6 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-/**
- * Final CTA Section — Fully Responsive
- */
 const FinalCTA = ({ showCTA = true }) => {
   return (
     <section className="relative overflow-hidden bg-white">
@@ -22,7 +19,6 @@ const FinalCTA = ({ showCTA = true }) => {
         ></div>
       </div>
 
-      {/* CTA Section — only rendered if showCTA is true */}
       {showCTA && (
         <div className="relative z-10 bg-[#15467d] py-14 text-white sm:py-20 md:py-32">
           <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,7 +50,7 @@ const FinalCTA = ({ showCTA = true }) => {
                 <Link href="/contactos">
                   <Button
                     size="lg"
-                    className="h-12 w-40 rounded-full bg-gradient-to-l from-[#94b0c9] via-white to-white px-8 py-4 text-base font-semibold text-[#15467d] shadow-md transition-all duration-300 ease-in-out hover:border hover:border-white hover:text-white hover:opacity-80 hover:shadow-lg sm:w-48 sm:px-10 sm:text-lg"
+                    className="h-12 w-40 rounded-full bg-gradient-to-l from-[#94b0c9] via-white to-white px-8 py-4 text-base font-semibold text-[#15467d] shadow-md transition-all duration-300 ease-in-out hover:border hover:border-white hover:text-black hover:opacity-80 hover:shadow-lg sm:w-48 sm:px-10 sm:text-lg"
                   >
                     Contact
                   </Button>

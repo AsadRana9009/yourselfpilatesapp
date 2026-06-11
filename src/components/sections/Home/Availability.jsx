@@ -38,9 +38,10 @@ const SquareClockIcon = () => (
 
 const Availibility = () => {
   return (
-    <div className="mt-20 mb-30 flex flex-col gap-16 px-4 md:flex-row md:justify-center md:gap-40 lg:gap-60">
-      {/* Horário */}
-      <div className="flex flex-col items-center gap-2 text-center md:-translate-y-6 md:flex-row md:items-start md:gap-x-6 md:text-left lg:-translate-y-10">
+    <div className="mt-20 mb-30 flex flex-col items-start gap-16 px-4 md:flex-row md:justify-center md:gap-40 lg:gap-60">
+    
+      <div className="flex w-full mt-1 flex-col items-center gap-2 text-center md:w-auto md:flex-row md:items-start md:gap-x-6 md:text-left">
+        {" "}
         <SquareClockIcon className="h-6 w-6" />
         <div>
           <h3 className="font-accent text-3xl font-light text-[#8faac1] md:text-5xl">
@@ -53,8 +54,8 @@ const Availibility = () => {
         </div>
       </div>
 
-      {/* Localização */}
-      <div className="flex flex-col items-center gap-2 text-center md:translate-y-6 md:flex-row md:items-start md:gap-x-6 md:text-left lg:translate-y-10">
+      <div className="flex w-full flex-col items-center gap-2 text-center md:w-auto md:flex-row md:items-start md:gap-x-6 md:text-left">
+        {" "}
         <LocationPinIcon className="h-6 w-6" />
         <div>
           <h3 className="font-accent text-3xl font-light text-[#8faac1] md:text-5xl">

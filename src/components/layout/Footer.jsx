@@ -1,170 +1,211 @@
-import React from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { PhoneCall, Instagram } from "lucide-react";
+import { Clock, MapPin, PhoneCall } from "lucide-react";
 
-const Footer = () => {
+const COLORS = {
+  surface: "#d7e3ed",
+  brand: "#15467d",
+  brandHover: "#0f365f",
+  brandForeground: "#ffffff",
+};
+
+function InstagramIcon({ className }) {
+  return (
+    <svg
+      role="img"
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+    </svg>
+  );
+}
+
+const navigationLinks = [
+  { name: "Agendar Espaço", href: "/agendar-espaco" },
+  { name: "Sobre", href: "/sobre" },
+  { name: "Contactos", href: "/contactos" },
+];
+
+const legalLinks = [
+  { name: "Livro de Reclamações", href: "#" },
+  { name: "Política de Privacidade", href: "/politica-de-privacidade" },
+  { name: "Termos e Condições", href: "/termos-e-condicoes" },
+  {
+    name: "Resolução de Litígios",
+    href: "https://justica.gov.pt/Resolucao-de-litigios",
+    external: true,
+  },
+  {
+    name: "Prazos e Condições de Entrega",
+    href: "/prazos-e-condicoes-de-entrega",
+  },
+];
+
+export function Footer() {
   const currentYear = new Date().getFullYear();
 
-  const navigationLinks = [
-    { name: "Agendar Espaço", href: "/agendar-espaco" },
-    { name: "Sobre", href: "/sobre" },
-    { name: "Contactos", href: "/contactos" },
-  ];
-
-  const legalLinks = [
-    { name: "Livro de Reclamações", href: "#" },
-    { name: "Política de Privacidade", href: "/politica-de-privacidade" },
-    { name: "Termos e Condições", href: "/termos-e-condicoes" },
-    {
-      name: "Resolução de Litígios",
-      href: "https://justica.gov.pt/Resolucao-de-litigios",
-      external: true,
-    },
-    {
-      name: "Prazos e Condições de Entrega dos Produtos / Prestação de Serviços",
-      href: "/prazos-e-condicoes-de-entrega",
-    },
-  ];
-
   return (
-    <footer className="relative bg-gradient-to-r from-[#d9e4ee] to-[#c9d7e4]">
-      <div className="grid grid-cols-12 px-6">
-        {/* Row 1 - Logo */}
-        <div className="col-span-12 -mt-10 ml-6 flex justify-start">
-          <Link href="/" className="inline-block">
-            <Image
-              src="/logos/YourSelf-Horizental-logo.png"
-              alt="YourSelf Pilates"
-              width={350}
-              height={120}
-              className="h-80 w-full transition-transform duration-500 ease-in-out hover:translate-x-1"
-            />
-          </Link>
-        </div>
+    <footer style={{ backgroundColor: COLORS.surface, color: COLORS.brand }}>
+      <div className="mx-auto max-w-7xl px-6 py-12 text-center sm:px-8 sm:text-left lg:px-12 lg:py-16">
 
-        {/* Row 2 - Navigation + Details */}
-        <div className="col-span-12 -mt-30 ml-0 grid grid-cols-1 justify-items-center gap-10 text-center md:ml-30 md:grid-cols-12 md:justify-start md:justify-items-start">
-          <div className="col-span-6">
-            <nav className="mt-10 flex flex-col items-center space-y-3 text-right md:ml-4 md:items-start">
-              {navigationLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="hover:text-primary w-fit text-2xl font-normal text-[#15467d] transition-colors duration-200"
-                >
-                  {link.name}
-                </Link>
-              ))}
-            </nav>
-          </div>
-          <div className="col-span-6">
-            <div className="mt-10 grid grid-cols-1 justify-items-center gap-6 text-center text-[#15467d] md:justify-items-start md:text-start xl:grid-cols-2">
-              {/* Row 1 - Atendimento / Phone */}
-              <div className="space-y-2">
-                <h3 className="text-base font-semibold">Atendimento</h3>
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-start space-x-2">
-                  <PhoneCall className="mt-1 h-4 w-4 shrink-0 text-[#15467d]" />
-                  <div className="flex flex-col items-center space-y-1">
-                    <span className="text-lg font-normal tracking-wide text-[#15467d]">
-                      927&nbsp;078&nbsp;842
-                    </span>
-                    <span className="text-xs text-[#15467d]">
-                      (Chamada para a rede móvel nacional)
-                    </span>
-                  </div>
-                </div>
-              </div>
+        {/* MAIN GRID (FIXED FOR TABLET) */}
+        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-12 md:w-full">
 
-              {/* Row 2 - Horário / Details */}
-              <div className="w-50 space-y-2 md:w-30">
-                <h3 className="text-base font-semibold">
-                  Horário e Localização
-                </h3>
-              </div>
-              <div className="space-y-4 text-base leading-snug">
-                <div>
-                  <p>Segunda a Sábado</p>
-                  <p>das 8h às 20h</p>
-                </div>
-                <div>
-                  <p>Rua Diário de Notícias nº 09, 2500-107</p>
-                  <p>Caldas da Rainha</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          {/* BRAND */}
+<div className="flex flex-col items-start md:items-center md:text-center gap-5 text-left sm:col-span-2 md:col-span-3 lg:col-span-1 lg:items-start lg:text-left">     
+         <Link href="/" className="text-2xl font-semibold tracking-tight transition-opacity hover:opacity-80">
+              Yourself Pilates
+            </Link>
 
-        {/* Row 3 - Social & Legal */}
-        <div className="col-span-12 mt-20 mb-20 ml-0 grid grid-cols-1 justify-items-center gap-14 lg:ml-20 lg:gap-4 xl:mt-50 xl:grid-cols-2 xl:items-end xl:justify-items-start">
-          {/* Column 1 - Social Media */}
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-normal text-[#15467d]">
-              Redes Sociais
-            </span>
+            <p className="max-w-xs text-sm leading-relaxed opacity-85">
+              Estúdio de Pilates em Caldas da Rainha, pensado para treinos,
+              aulas e utilização profissional do espaço.
+            </p>
+
             <a
               href="https://www.instagram.com/yourselfpilates/?hl=en"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-[#15467d] text-white transition hover:opacity-80"
-              aria-label="Instagram"
+              className="inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-xs font-medium transition-opacity hover:opacity-90"
+              style={{
+                backgroundColor: COLORS.brand,
+                color: COLORS.brandForeground,
+              }}
             >
-              <Instagram className="h-4 w-4" />
+              <InstagramIcon className="h-4 w-4" />
+              Redes Sociais
             </a>
           </div>
 
-          {/* Column 2 - Legal Links & Copyright */}
-          <div className="flex flex-col items-center gap-2 text-center lg:text-right xl:items-end">
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-3 sm:gap-y-1 xl:justify-end">
-              {legalLinks.map((link, index) => (
-                <React.Fragment key={link.href}>
-                  {link.external ? (
-                    <a
-                      href={link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-[#15467d] transition hover:opacity-80 sm:whitespace-nowrap"
-                    >
-                      {link.name}
-                    </a>
-                  ) : (
-                    <Link
-                      href={link.href}
-                      className="w-50 text-xs text-[#15467d] transition hover:opacity-80 sm:whitespace-nowrap md:w-auto"
-                    >
-                      {link.name}
-                    </Link>
-                  )}
-                  {index < legalLinks.length - 1 && (
-                    <span className="mx-0 hidden text-[#15467d]/50 sm:inline">
-                      |
-                    </span>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
+          {/* MENU (TABLET FIXED WIDTH) */}
+          <nav aria-label="Footer" className="text-left md:w-full lg:ml-20">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.12em] opacity-70 ">
+              Menu
+            </h3>
 
-            <div className="mt-1 text-center">
-              <p className="w-50 text-xs text-[#15467d] md:w-auto md:text-sm">
-                © {currentYear} – All rights Reserved. Powered by:{" "}
-                <a
-                  href="https://oonify.pt/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center font-medium text-[#15467d] transition hover:opacity-80"
-                >
-                  OONIFY
-                </a>
-              </p>
+            <ul className="flex flex-col items-start gap-3 pl-0 sm:items-start">
+              {navigationLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-base font-medium transition-opacity hover:opacity-70 hover:underline hover:underline-offset-4"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* CONTACT (TABLET FIXED WIDTH) */}
+          <div className="text-left md:w-full">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.12em] opacity-70">
+              Atendimento
+            </h3>
+
+            <div className="flex w-full flex-col items-start space-y-4 text-left text-sm leading-relaxed">
+
+              <a
+                href="tel:927078842"
+                className="flex items-start gap-2.5 transition-opacity hover:opacity-70"
+              >
+                <PhoneCall className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>
+                  <span className="block font-semibold">927 078 842</span>
+                  <span className="block opacity-80">
+                    Chamada para a rede móvel nacional
+                  </span>
+                </span>
+              </a>
+
+              <div className="flex items-start gap-2.5">
+                <Clock className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>
+                  <span className="block font-semibold">Segunda a Sábado</span>
+                  <span className="block opacity-80">das 8h às 20h</span>
+                </span>
+              </div>
+
             </div>
           </div>
+
+          {/* LOCATION (TABLET FIXED WIDTH) */}
+          <div className="text-left md:w-full">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.12em] opacity-70">
+              Localização
+            </h3>
+
+            <div className="flex items-start justify-start gap-2.5 text-sm leading-relaxed sm:justify-start">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+              <address className="not-italic">
+                Rua Diário de Notícias nº 09
+                <br />
+                2500-107 Caldas da Rainha
+              </address>
+            </div>
+          </div>
+
         </div>
+
+        {/* BOTTOM BAR */}
+        <div
+          className="mt-12 border-t pt-6"
+          style={{ borderColor: "rgba(21,70,125,0.15)" }}
+        >
+          <div className="flex flex-col items-center gap-5 lg:flex-row lg:items-center lg:justify-between">
+
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs lg:justify-start">
+              {legalLinks.map((link) =>
+                link.external ? (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="transition-opacity hover:opacity-70 hover:underline hover:underline-offset-4"
+                  >
+                    {link.name}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="transition-opacity hover:opacity-70 hover:underline hover:underline-offset-4"
+                  >
+                    {link.name}
+                  </Link>
+                ),
+              )}
+            </div>
+
+            <p className="text-xs opacity-75">
+              {"© "}
+              {currentYear} Yourself Pilates. Powered by{" "}
+              <a
+                href="https://oonify.pt/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold underline-offset-4 hover:underline"
+                style={{ color: COLORS.brandHover }}
+              >
+                OONIFY
+              </a>
+            </p>
+
+          </div>
+        </div>
+
       </div>
     </footer>
   );
-};
+}
 
 export default Footer;
