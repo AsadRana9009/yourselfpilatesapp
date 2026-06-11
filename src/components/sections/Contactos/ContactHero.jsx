@@ -95,14 +95,12 @@ const ContactHero = () => {
             />
           </motion.div>
 
-          {/* Right Column / Form */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
             className="contact-hero-form order-2 mt-[50px] flex w-full flex-col justify-start"
           >
-            {/* Heading */}
             <motion.div variants={itemVariants} className="mb-6 lg:mb-8">
               <p className="mb-2 text-lg font-normal text-[#88a9c3] md:text-xl">
                 Agende uma visita ou entre em
@@ -112,10 +110,8 @@ const ContactHero = () => {
               </h1>
             </motion.div>
 
-            {/* Contact Form */}
             <motion.div variants={itemVariants}>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Nome */}
                 <Input
                   type="text"
                   name="nome"
@@ -127,7 +123,6 @@ const ContactHero = () => {
                   className="h-12 w-full rounded-none border-0 border-b-2 border-[#c8d4e0] px-0 pt-2 pb-3 text-base text-[#3b3d42] placeholder:text-[#8b9daf] focus:border-transparent focus:ring-0"
                 />
 
-                {/* Email */}
                 <Input
                   type="email"
                   name="email"
@@ -139,7 +134,6 @@ const ContactHero = () => {
                   className="h-12 w-full rounded-none border-0 border-b-2 border-[#c8d4e0] px-0 pt-2 pb-3 text-base text-[#3b3d42] placeholder:text-[#8b9daf] focus:border-transparent focus:ring-0"
                 />
 
-                {/* Mensagem */}
                 <textarea
                   name="mensagem"
                   id="mensagem"
@@ -150,7 +144,7 @@ const ContactHero = () => {
                   className="w-full resize-none rounded-none border-0 border-b-2 border-[#c8d4e0] px-0 pt-2 pb-3 text-base text-[#3b3d42] placeholder:text-[#8b9daf] focus:border-transparent focus:ring-0"
                 />
 
-                {/* Checkbox */}
+            
                 <div className="flex items-start space-x-3 pt-2">
                   <input
                     type="checkbox"

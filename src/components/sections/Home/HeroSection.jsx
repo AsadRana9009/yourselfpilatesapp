@@ -32,23 +32,24 @@ const HeroSection = () => {
     },
   };
 
-  const countryCode = Intl.DateTimeFormat().resolvedOptions().locale.split('-')[1]?.toLowerCase() || 'us';
+  const countryCode =
+    Intl.DateTimeFormat()
+      .resolvedOptions()
+      .locale.split("-")[1]
+      ?.toLowerCase() || "us";
 
-const appStoreUrl = `https://apps.apple.com/${countryCode}/app/yourself-pilates/id6752496161`;
+  const appStoreUrl = `https://apps.apple.com/${countryCode}/app/yourself-pilates/id6752496161`;
 
   return (
     <section className="bg-gradient-primary relative overflow-hidden py-16 md:py-20 lg:py-3">
-      {/* Container */}
       <div className="container px-4 md:px-6 lg:px-8">
         <div className="hero-grid grid grid-cols-1 items-start gap-12 md:grid-cols-2 md:items-center lg:gap-20">
-          {/* Left Column */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
             className="space-y-8"
           >
-            {/* Location Badge */}
             <motion.div
               variants={itemVariants}
               className="location-badge mb-1 ml-20 flex items-center space-x-3 lg:ml-14"
@@ -59,7 +60,6 @@ const appStoreUrl = `https://apps.apple.com/${countryCode}/app/yourself-pilates/
               </span>
             </motion.div>
 
-            {/* Heading */}
             <motion.h1
               className="hero-heading font-accent ml-20 flex w-full lg:ml-14"
               variants={itemVariants}
@@ -86,43 +86,42 @@ const appStoreUrl = `https://apps.apple.com/${countryCode}/app/yourself-pilates/
               </Button>
 
               <div className="flex items-center gap-4">
-                <a aria-label="Download on App Store"
+                <a
                   href={appStoreUrl}
-                  className="transition-transform duration-300 ease-out hover:scale-105"
-                  rel="noopener noreferrer"
                   target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-[140px] h-[42px] flex items-center justify-center"
                 >
                   <Image
                     src="logos/app-store-badge.png"
                     alt="App Store Badge"
-                    width={135}
-                    height={40}
-                  ></Image>
+                    width={140}
+                    height={42}
+                    className="object-contain"
+                  />
                 </a>
-                <a aria-label="Get it on Google Play"
+
+                <a
                   href="https://play.google.com/store/apps/details?id=com.yourselfpilate.app"
-                  className="transition-transform duration-300 ease-out hover:scale-105"
-                  rel="noopener noreferrer"
                   target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-[150px] h-[50px] flex items-center justify-center"
                 >
                   <Image
                     src="logos/google-play-badge.png"
                     alt="Google Play Badge"
-                    width={135}
-                    height={40}
-                  ></Image>
+                    width={150}
+                    height={46}
+                    className="object-contain"
+                  />
                 </a>
               </div>
-
-
             </motion.div>
 
-            {/* Divider + Phone */}
             <motion.div
               variants={itemVariants}
               className="call-to-action cta-wrapper mt-90 -ml-8 flex w-full items-center space-x-0"
             >
-              {/* Left text + divider */}
               <div className="cta-left flex items-center space-x-2">
                 <div className="divider h-1px w-[68px] bg-[#88a9c3]" />
                 <span className="font-heading text-lg whitespace-nowrap text-[#15467d]">
@@ -130,7 +129,6 @@ const appStoreUrl = `https://apps.apple.com/${countryCode}/app/yourself-pilates/
                 </span>
               </div>
 
-              {/* Phone button */}
               <a
                 href="tel:927078842"
                 className="group cta-phone inline-flex items-center"
@@ -150,14 +148,12 @@ const appStoreUrl = `https://apps.apple.com/${countryCode}/app/yourself-pilates/
             </motion.div>
           </motion.div>
 
-          {/* Right Column - Images */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
             className="hero-images flex w-full flex-col gap-6 md:flex-row"
           >
-            {/* Left Image */}
             <div className="hero-image-left relative h-[500px] w-full md:h-[800px] md:w-1/2">
               <Image
                 src="/images/15.jpg"
@@ -169,7 +165,6 @@ const appStoreUrl = `https://apps.apple.com/${countryCode}/app/yourself-pilates/
               />
             </div>
 
-            {/* Right Image */}
             <div className="hero-image-right relative h-[500px] w-full md:h-[800px] md:w-1/2">
               <Image
                 src="/images/16.jpg"
@@ -184,7 +179,6 @@ const appStoreUrl = `https://apps.apple.com/${countryCode}/app/yourself-pilates/
         </div>
       </div>
 
-      {/* Background Decorative Elements */}
       <div className="pointer-events-none absolute top-0 left-0 h-full w-full overflow-hidden">
         <div className="bg-primary/5 absolute top-20 right-20 h-64 w-64 rounded-full blur-3xl" />
         <div className="bg-accent/5 absolute bottom-20 left-20 h-96 w-96 rounded-full blur-3xl" />

@@ -51,9 +51,9 @@ const PackagesListing = ({ title, subtitle } = {}) => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [subscribing, setSubscribing] = useState(false);
-  const [successType, setSuccessType] = useState(null); // 'pending' | null
-  const [successPaymentMethod, setSuccessPaymentMethod] = useState(null); // 'multibanco' | 'mbway' | null
-  const [successPaymentDetails, setSuccessPaymentDetails] = useState(null); // response.payment_details
+  const [successType, setSuccessType] = useState(null);
+  const [successPaymentMethod, setSuccessPaymentMethod] = useState(null);
+  const [successPaymentDetails, setSuccessPaymentDetails] = useState(null);
 
   const loadPacks = useCallback(async (retries = 1) => {
     try {
@@ -81,7 +81,6 @@ const PackagesListing = ({ title, subtitle } = {}) => {
     const unsubscribe = onAuthChange((isAuth, userInfo) => {
       setAuthenticated(isAuth);
       setUserRole(userInfo?.role ?? null);
-      // New session (login/logout) should start clean and refetch packs.
       setError(null);
       setSuccessModalOpen(false);
       setSuccessType(null);
@@ -101,10 +100,12 @@ const PackagesListing = ({ title, subtitle } = {}) => {
     loadPacks();
   }, [loadPacks, packsRefreshSeq]);
 
-  const handleSubscribe = async (pkgInput = selectedPackage, methodInput = selectedPaymentMethod) => {
+  const handleSubscribe = async (
+    pkgInput = selectedPackage,
+    methodInput = selectedPaymentMethod,
+  ) => {
     if (!pkgInput || !methodInput) return;
 
-    // Validate phone number for MBWAY
     if (methodInput === "mbway" && !phoneNumber.trim()) {
       setError("Por favor, insira o número de telefone para MB WAY.");
       return;
@@ -120,10 +121,14 @@ const PackagesListing = ({ title, subtitle } = {}) => {
         paymentData.mbway_phone = `351#${cleanPhone}`;
       }
 
-      const response = await subscriptionsApi.subscribe(pkgInput.id, paymentData);
+      const response = await subscriptionsApi.subscribe(
+        pkgInput.id,
+        paymentData,
+      );
       setPaymentModalOpen(false);
 
-      const paymentUrl = response.payment_url || response.payment_details?.payment_url;
+      const paymentUrl =
+        response.payment_url || response.payment_details?.payment_url;
       if (methodInput === "creditcard" && paymentUrl) {
         window.location.href = paymentUrl;
         return;
@@ -142,7 +147,9 @@ const PackagesListing = ({ title, subtitle } = {}) => {
         err?.message ||
         "Erro ao processar subscrição. Por favor, tente novamente.";
 
-      setError(typeof apiError === "string" ? apiError : JSON.stringify(apiError));
+      setError(
+        typeof apiError === "string" ? apiError : JSON.stringify(apiError),
+      );
     } finally {
       setSubscribing(false);
     }
@@ -153,8 +160,6 @@ const PackagesListing = ({ title, subtitle } = {}) => {
     setPhoneNumber("");
   };
 
-  // If user logs out, clear any previous user UI state (errors/success modal),
-  // so the next login starts clean.
   useEffect(() => {
     if (!authenticated) {
       setError(null);
@@ -203,25 +208,30 @@ const PackagesListing = ({ title, subtitle } = {}) => {
     }
   };
 
-  const publicPacks = packages.filter((p) => p.is_public === true);
-  const proPacks = packages.filter((p) => p.is_public !== true);
+  const publicPacks = packages;
+  const proPacks = packages;
 
-  // Role-based tab logic:
-  //  - professor / teacher → pro packs only, no switcher
-  //  - student             → public packs only, no switcher
-  //  - not logged in / admin → both tabs, user can switch
   const isProfessor = userRole === "professor" || userRole === "teacher";
   const isStudent = userRole === "student";
   const showTabs = !authenticated || (!isProfessor && !isStudent);
 
   const [activeTab, setActiveTab] = useState("public");
+  const getDisplayPacks = (packs) => {
+    if (packs.length === 0) return [];
+    if (packs.length >= 3) return packs;
+
+    return Array.from({ length: 3 }, (_, index) => packs[index % packs.length]);
+  };
+
+  const publicDisplayPacks = getDisplayPacks(publicPacks);
+  const proDisplayPacks = getDisplayPacks(proPacks);
   const visiblePacks = isProfessor
-    ? proPacks
+    ? proDisplayPacks
     : isStudent
-    ? publicPacks
-    : activeTab === "public"
-    ? publicPacks
-    : proPacks;
+      ? publicDisplayPacks
+      : activeTab === "public"
+        ? publicDisplayPacks
+        : proDisplayPacks;
 
   return (
     <section className="pt-0 pb-20" id="packages-listing">
@@ -251,7 +261,6 @@ const PackagesListing = ({ title, subtitle } = {}) => {
           </div>
         )}
 
-        {/* Tab switcher — only shown when user can choose between both lists */}
         {!loading && !error && showTabs && (
           <div className="flex justify-center mb-10">
             <div className="inline-flex items-center gap-1 rounded-full bg-sky-50 border border-sky-100 p-1.5 shadow-sm">
@@ -271,7 +280,7 @@ const PackagesListing = ({ title, subtitle } = {}) => {
                       : "bg-sky-100 text-sky-700"
                   }`}
                 >
-                  {publicPacks.length}
+                  {publicDisplayPacks.length}
                 </span>
               </button>
 
@@ -291,7 +300,7 @@ const PackagesListing = ({ title, subtitle } = {}) => {
                       : "bg-sky-100 text-sky-700"
                   }`}
                 >
-                  {proPacks.length}
+                  {proDisplayPacks.length}
                 </span>
               </button>
             </div>
@@ -311,13 +320,13 @@ const PackagesListing = ({ title, subtitle } = {}) => {
             </p>
           </div>
         ) : (
-          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-            {visiblePacks.map((pkg) => (
+          <div className="mx-auto grid max-w-6xl grid-cols-1 justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {visiblePacks.map((pkg, index) => (
               <Card
-                key={pkg.id || pkg.name}
-                className="flex h-full w-full flex-col overflow-hidden rounded-xl border-none bg-linear-to-b from-sky-900/30 via-[#f1f5f8] to-white p-0 shadow-none hover:shadow-lg transition-shadow duration-300"
+                key={`${pkg.id || pkg.name}-${index}`}
+                className="flex h-full w-full max-w-xs flex-col overflow-hidden rounded-xl border-none bg-linear-to-b from-sky-900/30 via-[#f1f5f8] to-white p-0 shadow-none transition-shadow duration-300 hover:shadow-lg"
               >
-                <div className="relative h-[300px] w-full shrink-0 overflow-hidden bg-gray-200">
+                <div className="relative h-[200px] w-full shrink-0 overflow-hidden bg-gray-200">
                   {pkg.image ? (
                     <Image
                       src={pkg.image}
@@ -338,7 +347,7 @@ const PackagesListing = ({ title, subtitle } = {}) => {
                   )}
                 </div>
 
-                <CardContent className="flex flex-1 flex-col p-6 text-left font-sans">
+                <CardContent className="flex flex-1 flex-col p-4 text-left font-sans">
                   <h3 className="mb-3 font-sans text-2xl font-bold text-sky-900">
                     {pkg.name}
                   </h3>
@@ -363,12 +372,12 @@ const PackagesListing = ({ title, subtitle } = {}) => {
           </div>
         )}
       </div>
-
       <LoginModal
         open={loginModalOpen}
         onOpenChange={setLoginModalOpen}
         onLogin={handleLoginSuccess}
-      />      <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+      />{" "}
+      <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
         <DialogContent className="sm:max-w-[450px] rounded-3xl p-6 border-none shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-sky-900 text-center mb-4">
@@ -388,21 +397,31 @@ const PackagesListing = ({ title, subtitle } = {}) => {
                 <button
                   key={method.id}
                   onClick={() => handlePaymentMethodSelect(method.id)}
-                  className={`flex items-center gap-4 rounded-2xl border-2 p-4 transition-all duration-200 ${isSelected
-                    ? "border-sky-900 bg-sky-50 shadow-md transform scale-[1.02]"
-                    : "border-gray-100 hover:border-sky-200 hover:bg-gray-50"
-                    }`}
+                  className={`flex items-center gap-4 rounded-2xl border-2 p-4 transition-all duration-200 ${
+                    isSelected
+                      ? "border-sky-900 bg-sky-50 shadow-md transform scale-[1.02]"
+                      : "border-gray-100 hover:border-sky-200 hover:bg-gray-50"
+                  }`}
                 >
-                  <div className={`rounded-xl p-3 ${isSelected ? "bg-sky-900 text-white" : "bg-sky-100 text-sky-900"
-                    }`}>
+                  <div
+                    className={`rounded-xl p-3 ${
+                      isSelected
+                        ? "bg-sky-900 text-white"
+                        : "bg-sky-100 text-sky-900"
+                    }`}
+                  >
                     <Icon className="h-6 w-6" />
                   </div>
                   <div className="flex flex-col text-left">
-                    <span className="text-lg font-bold text-sky-900">{method.name}</span>
+                    <span className="text-lg font-bold text-sky-900">
+                      {method.name}
+                    </span>
                     <span className="text-xs text-sky-700 font-medium">
-                      {method.id === 'mbway' ? 'Pagamento imediato via telemóvel' :
-                        method.id === 'multibanco' ? 'Referência enviada por e-mail' :
-                          'Pagamento seguro com cartão'}
+                      {method.id === "mbway"
+                        ? "Pagamento imediato via telemóvel"
+                        : method.id === "multibanco"
+                          ? "Referência enviada por e-mail"
+                          : "Pagamento seguro com cartão"}
                     </span>
                   </div>
                   {isSelected && (
@@ -416,7 +435,9 @@ const PackagesListing = ({ title, subtitle } = {}) => {
 
             {selectedPaymentMethod === "mbway" && (
               <div className="mt-4 space-y-2 animate-in fade-in slide-in-from-top-2">
-                <label className="text-sm font-bold text-sky-900 ml-1">Número de Telemóvel</label>
+                <label className="text-sm font-bold text-sky-900 ml-1">
+                  Número de Telemóvel
+                </label>
                 <Input
                   type="tel"
                   placeholder="912 345 678"
@@ -444,30 +465,38 @@ const PackagesListing = ({ title, subtitle } = {}) => {
           </div>
         </DialogContent>
       </Dialog>
-
-      <Dialog open={successModalOpen} onOpenChange={(open) => {
-        setSuccessModalOpen(open);
-        if (!open) {
-          setSuccessType(null);
-          setSuccessPaymentMethod(null);
-          setSuccessPaymentDetails(null);
-        }
-      }}>
+      <Dialog
+        open={successModalOpen}
+        onOpenChange={(open) => {
+          setSuccessModalOpen(open);
+          if (!open) {
+            setSuccessType(null);
+            setSuccessPaymentMethod(null);
+            setSuccessPaymentDetails(null);
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <div className="flex flex-col items-center justify-center py-6">
             <div
-              className={`mb-4 flex h-20 w-20 items-center justify-center rounded-full ${successType === "pending" ? "bg-amber-100" : "bg-green-100"
-                }`}
+              className={`mb-4 flex h-20 w-20 items-center justify-center rounded-full ${
+                successType === "pending" ? "bg-amber-100" : "bg-green-100"
+              }`}
             >
               <CheckCircle2
-                className={`h-12 w-12 ${successType === "pending" ? "text-amber-600" : "text-green-600"
-                  }`}
+                className={`h-12 w-12 ${
+                  successType === "pending"
+                    ? "text-amber-600"
+                    : "text-green-600"
+                }`}
               />
             </div>
 
             <DialogHeader className="flex flex-col items-center text-center">
               <DialogTitle className="mb-2 text-center text-2xl font-semibold text-sky-900">
-                {successType === "pending" ? "Pagamento Pendente" : "Subscrição Realizada!"}
+                {successType === "pending"
+                  ? "Pagamento Pendente"
+                  : "Subscrição Realizada!"}
               </DialogTitle>
               <p className="text-center text-base font-normal text-sky-700">
                 {successType === "pending"
@@ -480,30 +509,33 @@ const PackagesListing = ({ title, subtitle } = {}) => {
               </p>
             </DialogHeader>
 
-            {successType === "pending" && successPaymentMethod === "multibanco" && (
-              <div className="mt-5 w-full max-w-[380px] rounded-2xl border border-sky-100 bg-sky-50 p-4 text-left">
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="font-medium text-sky-700">Montante</span>
-                    <span className="font-mono text-sky-900">
-                      {successPaymentDetails?.amount || "—"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="font-medium text-sky-700">Entidade</span>
-                    <span className="font-mono text-sky-900">
-                      {successPaymentDetails?.entity || "—"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="font-medium text-sky-700">Referência</span>
-                    <span className="font-mono text-sky-900">
-                      {successPaymentDetails?.reference || "—"}
-                    </span>
+            {successType === "pending" &&
+              successPaymentMethod === "multibanco" && (
+                <div className="mt-5 w-full max-w-[380px] rounded-2xl border border-sky-100 bg-sky-50 p-4 text-left">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="font-medium text-sky-700">Montante</span>
+                      <span className="font-mono text-sky-900">
+                        {successPaymentDetails?.amount || "—"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="font-medium text-sky-700">Entidade</span>
+                      <span className="font-mono text-sky-900">
+                        {successPaymentDetails?.entity || "—"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="font-medium text-sky-700">
+                        Referência
+                      </span>
+                      <span className="font-mono text-sky-900">
+                        {successPaymentDetails?.reference || "—"}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {successType === "pending" && successPaymentMethod === "mbway" && (
               <div className="mt-5 w-full max-w-[380px] rounded-2xl border border-sky-100 bg-sky-50 p-4 text-left">

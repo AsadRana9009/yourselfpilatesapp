@@ -7,14 +7,14 @@ export const LOGO_CONFIG = {
   src: "/images/Logo.png",
   alt: "YourSelf Pilates",
   mobile: {
+    width: 120,
+    height: 40,
+    className: "h-8 w-auto",
+  },
+  tablet: {
     width: 150,
     height: 50,
     className: "h-10 w-auto",
-  },
-  tablet: {
-    width: 200,
-    height: 60,
-    className: "h-12 w-auto",
   },
   desktop: {
     width: 200,

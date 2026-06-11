@@ -5,16 +5,12 @@ import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay, EffectFade } from "swiper/modules";
 
-// Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
 
-/**
- * Image Carousel Section
- * Full-width carousel with fade transitions
- */
+
 const ImageCarousel = () => {
   const slides = [
     {
