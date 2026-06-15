@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getAccessToken, clearAuthData } from "./auth";
+import { getAccessToken, getTokenType, clearAuthData } from "./auth";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend.yourselfpilates.pt";
@@ -16,7 +16,7 @@ api.interceptors.request.use(
   (config) => {
     const token = getAccessToken();
     if (token) {
-      config.headers.Authorization = `Token ${token}`;
+      config.headers.Authorization = `${getTokenType()} ${token}`;
     }
     return config;
   },

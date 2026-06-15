@@ -11,7 +11,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { authApi } from "@/lib/api";
+import { studentApi, authApi } from "@/lib/api";
 import { storeAuthData } from "@/lib/auth";
 
 const LoginModal = ({ open, onOpenChange, onLogin }) => {
@@ -58,7 +58,7 @@ const LoginModal = ({ open, onOpenChange, onLogin }) => {
     setInfo("");
 
     try {
-      const authData = await authApi.login(formData.email, formData.password);
+      const authData = await studentApi.login(formData.email, formData.password);
       storeAuthData(authData);
       onLogin?.(authData);
       resetAndClose();

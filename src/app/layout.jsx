@@ -2,6 +2,7 @@ import { Roboto, PT_Sans, Kodchasan, Montserrat } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import WhatsappButton from "@/components/shared/WhatsappButton";
+import BookingButton from "@/components/shared/BookingButton";
 import Footer from "@/components/layout/Footer";
 
 // Primary Font: Roboto - Weights: 300, 400, 500, 900
@@ -40,8 +41,6 @@ export const metadata = {
   },
 };
 
-import { Toaster } from "@/components/ui/sonner";
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -54,6 +53,8 @@ export default function RootLayout({ children }) {
 
         {/* WhatsApp Floating Button */}
         <WhatsappButton />
+        {/* Booking Floating Button (visible when logged in) */}
+        <BookingButton />
         {children}
 
         {/* Footer Component */}

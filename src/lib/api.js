@@ -1,5 +1,47 @@
 import api from "./axios";
 
+export const studentApi = {
+  register: async ({ email, full_name, password, confirm_password, contact_number, region }) => {
+    const { data } = await api.post("/api/user/student/register/", {
+      email,
+      full_name,
+      password,
+      confirm_password,
+      contact_number,
+      ...(region ? { region } : {}),
+    });
+    return data;
+  },
+
+  verifyEmail: async (email, otp) => {
+    const { data } = await api.post("/api/user/student/verify-email/", {
+      email,
+      otp,
+    });
+    return data;
+  },
+
+  login: async (email, password) => {
+    const { data } = await api.post("/api/user/student/login/", {
+      email,
+      password,
+    });
+    return data;
+  },
+
+  resendOtp: async (email) => {
+    const { data } = await api.post("/api/user/student/resend-otp/", { email });
+    return data;
+  },
+
+  refreshToken: async (refresh) => {
+    const { data } = await api.post("/api/user/student/token/refresh/", {
+      refresh,
+    });
+    return data;
+  },
+};
+
 export const authApi = {
   login: async (email, password) => {
     const { data } = await api.post("/api/user/login/", { email, password });
@@ -95,6 +137,36 @@ export const subscriptionsApi = {
       payload
     );
     return data;
+  },
+};
+
+export const bookingApi = {
+  getAvailableSlots: async (date) => {
+    const { data } = await api.get(`/api/booking/bookings/available_slots/?date=${date}`);
+    return data;
+  },
+
+  getProfessors: async (regionId) => {
+    const url = regionId ? `/api/user/professors/?region=${regionId}` : '/api/user/professors/';
+    const { data } = await api.get(url);
+    return data;
+  },
+
+  createBooking: async (payload) => {
+    const { data } = await api.post('/api/booking/bookings/', payload);
+    return data;
+  },
+
+  studentBook: async (payload) => {
+    const { data } = await api.post('/api/booking/bookings/student_book/', payload);
+    return data;
+  },
+};
+
+export const regionsApi = {
+  getRegions: async () => {
+    const { data } = await api.get('/api/subscriptions/regions/');
+    return Array.isArray(data) ? data : (data.results ?? []);
   },
 };
 

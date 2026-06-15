@@ -3,12 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import RegistrationModal from "./RegistrationModal";
-import {
-  isAuthenticated,
-  clearAuthData,
-  getUserInfo,
-  onAuthChange,
-} from "@/lib/auth";
+import { getUserInfo, onAuthChange } from "@/lib/auth";
 
 const BUTTON_VARIANTS = {
   mobile:
@@ -40,7 +35,7 @@ const RegistrationButton = ({ variant = "desktop", className = "" }) => {
   useEffect(() => {
     setUser(getUserInfo());
 
-    const unsubscribe = onAuthChange((isAuth, userInfo) => {
+    const unsubscribe = onAuthChange((_, userInfo) => {
       setUser(userInfo);
     });
 
@@ -58,11 +53,6 @@ const RegistrationButton = ({ variant = "desktop", className = "" }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleLogout = () => {
-    clearAuthData();
-    setUser(null);
-  };
 
   const handleRoleSelect = (role) => {
     if (role === "professor") {
@@ -82,13 +72,26 @@ const RegistrationButton = ({ variant = "desktop", className = "" }) => {
     setSelectedRole(null);
   };
 
-  const handleBackToRoles = () => {
-    setDropdownStep("role");
-  };
-
   const buttonClass = `${
     BUTTON_VARIANTS[variant] || BUTTON_VARIANTS.desktop
   } ${className}`;
+
+  if (user) {
+    const initials = user.fullName
+      ? user.fullName
+          .split(" ")
+          .slice(0, 2)
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+      : user.email?.[0]?.toUpperCase() ?? "U";
+
+    return (
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#15467d] text-white text-xs font-semibold select-none">
+        {initials}
+      </div>
+    );
+  }
 
   return (
     <>

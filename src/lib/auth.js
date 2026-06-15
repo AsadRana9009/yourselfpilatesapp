@@ -36,14 +36,33 @@ const safeStorage = {
 };
 
 export function storeAuthData(authData) {
-  const dataToStore = {
-    token: authData.token,
-    email: authData.email,
-    fullName: authData.full_name,
-    role: authData.role,
-    userId: authData.user_id,
-    timestamp: Date.now(),
-  };
+  let dataToStore;
+
+  if (authData.tokens && authData.user) {
+    // Student JWT login: { tokens: { access, refresh }, user: { id, email, full_name, role, ... } }
+    dataToStore = {
+      accessToken: authData.tokens.access,
+      refreshToken: authData.tokens.refresh,
+      tokenType: "Bearer",
+      email: authData.user.email,
+      fullName: authData.user.full_name,
+      role: authData.user.role,
+      userId: String(authData.user.id),
+      isVerified: authData.user.is_verified,
+      timestamp: Date.now(),
+    };
+  } else {
+    // DRF token login: { token, email, full_name, role, user_id }
+    dataToStore = {
+      accessToken: authData.token,
+      tokenType: "Token",
+      email: authData.email,
+      fullName: authData.full_name,
+      role: authData.role,
+      userId: authData.user_id,
+      timestamp: Date.now(),
+    };
+  }
 
   safeStorage.set(AUTH_STORAGE_KEY, dataToStore);
   dispatchAuthChange();
@@ -54,7 +73,17 @@ export function getAuthData() {
 }
 
 export function getAccessToken() {
-  return getAuthData()?.token || null;
+  const data = getAuthData();
+  // Support both new format (accessToken) and legacy format (token)
+  return data?.accessToken || data?.token || null;
+}
+
+export function getTokenType() {
+  return getAuthData()?.tokenType || "Token";
+}
+
+export function getRefreshToken() {
+  return getAuthData()?.refreshToken || null;
 }
 
 export function isAuthenticated() {
