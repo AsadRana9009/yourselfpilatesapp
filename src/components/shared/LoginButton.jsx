@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import LoginModal from "./LoginModal";
+import RegisterModal from "./RegisterModal";
 import {
   isAuthenticated,
-  clearAuthData,
   getUserInfo,
   onAuthChange,
 } from "@/lib/auth";
@@ -21,6 +21,7 @@ const BUTTON_VARIANTS = {
 
 const LoginButton = ({ variant = "desktop", className = "" }) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
 
@@ -41,20 +42,10 @@ const LoginButton = ({ variant = "desktop", className = "" }) => {
     setUser(getUserInfo());
   };
 
-  const handleLogout = () => {
-    clearAuthData();
-    setAuthenticated(false);
-    setUser(null);
-  };
-
   const buttonClass = `${BUTTON_VARIANTS[variant] || BUTTON_VARIANTS.desktop} ${className}`;
 
   if (authenticated) {
-    return (
-      <Button variant="outline" onClick={handleLogout} className={buttonClass}>
-        Logout
-      </Button>
-    );
+    return null;
   }
 
   return (
@@ -71,6 +62,12 @@ const LoginButton = ({ variant = "desktop", className = "" }) => {
         open={modalOpen}
         onOpenChange={setModalOpen}
         onLogin={handleLoginSuccess}
+        onOpenRegister={() => { setModalOpen(false); setRegisterOpen(true); }}
+      />
+      <RegisterModal
+        open={registerOpen}
+        onOpenChange={setRegisterOpen}
+        onOpenLogin={() => { setRegisterOpen(false); setModalOpen(true); }}
       />
     </>
   );

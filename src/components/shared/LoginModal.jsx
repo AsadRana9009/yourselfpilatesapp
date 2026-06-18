@@ -14,9 +14,9 @@ import { Input } from "@/components/ui/input";
 import { studentApi, authApi } from "@/lib/api";
 import { storeAuthData } from "@/lib/auth";
 
-const LoginModal = ({ open, onOpenChange, onLogin }) => {
-  const [view, setView] = useState("login"); 
-  const [resetStep, setResetStep] = useState("request"); 
+const LoginModal = ({ open, onOpenChange, onLogin, onOpenRegister }) => {
+  const [view, setView] = useState("login");
+  const [resetStep, setResetStep] = useState("request");
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [resetData, setResetData] = useState({
     email: "",
@@ -27,6 +27,7 @@ const LoginModal = ({ open, onOpenChange, onLogin }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+
 
   useEffect(() => {
     if (resetStep === "done") {
@@ -58,13 +59,29 @@ const LoginModal = ({ open, onOpenChange, onLogin }) => {
     setInfo("");
 
     try {
-      const authData = await studentApi.login(formData.email, formData.password);
+      let authData;
+      try {
+        // Try student JWT login first
+        authData = await studentApi.login(formData.email, formData.password);
+      } catch (studentErr) {
+        const msg = studentErr.message || "";
+        // If rejected because this user is not a student, try the general login endpoint
+        if (/students only|student only/i.test(msg)) {
+          authData = await authApi.login(formData.email, formData.password);
+        } else {
+          throw studentErr;
+        }
+      }
       storeAuthData(authData);
       onLogin?.(authData);
       resetAndClose();
     } catch (err) {
+      const msg = err.message || "";
+      const isNotRegistered = /not found|no active account|does not exist|not registered|no user|invalid credentials|401/i.test(msg);
       setError(
-        err.message || "Erro ao fazer login. Por favor, tente novamente.",
+        isNotRegistered
+          ? "Email or password is incorrect."
+          : msg || "Erro ao fazer login. Por favor, tente novamente.",
       );
     } finally {
       setLoading(false);
@@ -206,6 +223,7 @@ const LoginModal = ({ open, onOpenChange, onLogin }) => {
 
   const resetAndClose = () => {
     setFormData({ email: "", password: "" });
+
     setView("login");
     setResetStep("request");
     setResetData({
@@ -292,6 +310,19 @@ const LoginModal = ({ open, onOpenChange, onLogin }) => {
                 disabled={loading}
                 required
               />
+
+              {/* Region field disabled
+              {regions.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[#15467d] dark:text-slate-200">
+                    Região
+                  </label>
+                  <div className="relative" data-login-region-dropdown>
+                    ...
+                  </div>
+                </div>
+              )}
+              */}
 
               <div className="-mt-2 flex justify-end">
                 <button
@@ -426,6 +457,19 @@ const LoginModal = ({ open, onOpenChange, onLogin }) => {
               </>
             )}
           </DialogFooter>
+
+          {view === "login" && (
+            <p className="text-center text-sm text-gray-500 dark:text-slate-400">
+              Don&apos;t have an account?{" "}
+              <button
+                type="button"
+                onClick={() => { resetAndClose(); onOpenRegister?.(); }}
+                className="font-medium text-[#15467d] underline-offset-4 hover:underline dark:text-slate-200"
+              >
+                Register
+              </button>
+            </p>
+          )}
         </form>
       </DialogContent>
     </Dialog>

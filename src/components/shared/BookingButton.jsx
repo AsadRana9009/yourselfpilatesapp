@@ -52,6 +52,7 @@ const BookingButton = () => {
         open={modalOpen}
         onOpenChange={setModalOpen}
         role={user.role}
+        isPublic={user.isPublic}
       />
     </>
   );

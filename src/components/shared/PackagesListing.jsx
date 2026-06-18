@@ -12,9 +12,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2, CreditCard, Smartphone, Building2 } from "lucide-react";
-import { fetchPacks, subscriptionsApi } from "@/lib/api";
-import { getUserInfo, isAuthenticated, onAuthChange } from "@/lib/auth";
+import { fetchPacks, subscriptionsApi, regionsApi } from "@/lib/api";
+import { getUserInfo, isAuthenticated, onAuthChange, getLoginRegion, storeLoginRegion } from "@/lib/auth";
+import { MapPin, ChevronDown } from "lucide-react";
 import LoginModal from "./LoginModal";
+import RegisterModal from "./RegisterModal";
 
 const PAYMENT_METHODS = [
   {
@@ -43,8 +45,10 @@ const PackagesListing = ({ title, subtitle } = {}) => {
   const [error, setError] = useState(null);
   const [authenticated, setAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [userIsPublic, setUserIsPublic] = useState(null);
   const [packsRefreshSeq, setPacksRefreshSeq] = useState(0);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState(null);
@@ -55,11 +59,17 @@ const PackagesListing = ({ title, subtitle } = {}) => {
   const [successPaymentMethod, setSuccessPaymentMethod] = useState(null);
   const [successPaymentDetails, setSuccessPaymentDetails] = useState(null);
 
-  const loadPacks = useCallback(async (retries = 1) => {
+  // Region filter state
+  const [regions, setRegions] = useState([]);
+  const [selectedRegion, setSelectedRegion] = useState(null); // null = All Regions
+  const [regionDropdownOpen, setRegionDropdownOpen] = useState(false);
+  const [pendingLoginRegion, setPendingLoginRegion] = useState(null);
+
+  const loadPacks = useCallback(async (regionId = null, retries = 1) => {
     try {
       setLoading(true);
       setError(null);
-      const fetchedPacks = await fetchPacks();
+      const fetchedPacks = await fetchPacks(regionId);
       setPackages(fetchedPacks);
     } catch (err) {
       if (err?.message && !err.message.includes("Given token not valid")) {
@@ -67,7 +77,7 @@ const PackagesListing = ({ title, subtitle } = {}) => {
       }
       if (retries > 0) {
         await new Promise((resolve) => setTimeout(resolve, 500));
-        return loadPacks(retries - 1);
+        return loadPacks(regionId, retries - 1);
       }
       setError("Erro ao carregar os packs. Por favor, tente novamente.");
     } finally {
@@ -75,12 +85,34 @@ const PackagesListing = ({ title, subtitle } = {}) => {
     }
   }, []);
 
+  // Load regions once on mount
+  useEffect(() => {
+    regionsApi.getRegions().then((data) => setRegions(data)).catch((err) => console.error("Failed to load regions:", err));
+  }, []);
+
+  // Close region dropdown on outside click
+  useEffect(() => {
+    if (!regionDropdownOpen) return;
+    const handler = (e) => {
+      if (!e.target.closest("[data-region-dropdown]")) setRegionDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [regionDropdownOpen]);
+
   useEffect(() => {
     setAuthenticated(isAuthenticated());
     setUserRole(getUserInfo()?.role ?? null);
+    setUserIsPublic(getUserInfo()?.isPublic ?? null);
+    // If already logged in on mount, pick up any stored login region
+    if (isAuthenticated()) {
+      const stored = getLoginRegion();
+      if (stored) setPendingLoginRegion(stored);
+    }
     const unsubscribe = onAuthChange((isAuth, userInfo) => {
       setAuthenticated(isAuth);
       setUserRole(userInfo?.role ?? null);
+      setUserIsPublic(userInfo?.isPublic ?? null);
       setError(null);
       setSuccessModalOpen(false);
       setSuccessType(null);
@@ -91,14 +123,31 @@ const PackagesListing = ({ title, subtitle } = {}) => {
       setSelectedPackage(null);
       setSelectedPaymentMethod(null);
       setPhoneNumber("");
+      if (isAuth) {
+        const stored = getLoginRegion();
+        if (stored) setPendingLoginRegion(stored);
+      } else {
+        setPendingLoginRegion(null);
+        setSelectedRegion(null);
+      }
       setPacksRefreshSeq((v) => v + 1);
     });
     return unsubscribe;
   }, []);
 
+  // When regions load (or login region arrives), auto-select the user's region
   useEffect(() => {
-    loadPacks();
-  }, [loadPacks, packsRefreshSeq]);
+    if (!pendingLoginRegion || regions.length === 0) return;
+    const match = regions.find((r) => r.id === pendingLoginRegion.id);
+    if (match) {
+      setSelectedRegion(match);
+      setPendingLoginRegion(null);
+    }
+  }, [pendingLoginRegion, regions]);
+
+  useEffect(() => {
+    loadPacks(selectedRegion?.id ?? null);
+  }, [loadPacks, packsRefreshSeq, selectedRegion]);
 
   const handleSubscribe = async (
     pkgInput = selectedPackage,
@@ -124,6 +173,7 @@ const PackagesListing = ({ title, subtitle } = {}) => {
       const response = await subscriptionsApi.subscribe(
         pkgInput.id,
         paymentData,
+        selectedRegion?.id ?? null,
       );
       setPaymentModalOpen(false);
 
@@ -178,6 +228,14 @@ const PackagesListing = ({ title, subtitle } = {}) => {
   }, [authenticated]);
 
   const handleAgendarClick = (pkg) => {
+    if (!canBuyPacks) return;
+
+    // Public students must select a region before purchasing — credits are region-specific
+    if (isPublicStudent && !selectedRegion) {
+      setError("Por favor, selecione uma região antes de comprar um pack.");
+      return;
+    }
+
     setSelectedPackage(pkg);
     setError(null);
     resetPaymentState();
@@ -208,30 +266,40 @@ const PackagesListing = ({ title, subtitle } = {}) => {
     }
   };
 
-  const publicPacks = packages;
-  const proPacks = packages;
-
+  // Determine who can purchase packs:
+  //   Pro professor  (role=professor/teacher, is_public=false) → CAN buy professor packs
+  //   Public student (role=student,           is_public=true)  → CAN buy student packs
+  //   Public professor / Pro student                          → CANNOT buy
   const isProfessor = userRole === "professor" || userRole === "teacher";
   const isStudent = userRole === "student";
-  const showTabs = !authenticated || (!isProfessor && !isStudent);
+  const isProProfessor = isProfessor && userIsPublic === false;
+  const isPublicStudent = isStudent && userIsPublic === true;
+  const canBuyPacks = !authenticated || isProProfessor || isPublicStudent;
+  // canBuyPacks is true for unauthenticated (show packs + prompt login),
+  // pro professors, and public students. False for public professors and pro students.
+
+  // Tabs are only shown to anonymous users — logged-in users see their filtered packs directly
+  const showTabs = !authenticated;
 
   const [activeTab, setActiveTab] = useState("public");
-  const getDisplayPacks = (packs) => {
-    if (packs.length === 0) return [];
-    if (packs.length >= 3) return packs;
+  const displayPacks = packages;
 
-    return Array.from({ length: 3 }, (_, index) => packs[index % packs.length]);
-  };
+  // Filter packs by is_public to match dashboard grouping:
+  //   is_public=false → Pro Professor packs ("Pro Packs" tab)
+  //   is_public=true  → Public Student packs ("Public Packs" tab)
+  const visiblePacks = authenticated
+    ? isProProfessor
+      ? displayPacks.filter((p) => p.is_public === false)
+      : isPublicStudent
+        ? displayPacks.filter((p) => p.is_public === true)
+        : displayPacks // admin or other
+    : activeTab === "pro"
+      ? displayPacks.filter((p) => p.is_public === false)
+      : displayPacks.filter((p) => p.is_public === true); // "public" tab → student packs
 
-  const publicDisplayPacks = getDisplayPacks(publicPacks);
-  const proDisplayPacks = getDisplayPacks(proPacks);
-  const visiblePacks = isProfessor
-    ? proDisplayPacks
-    : isStudent
-      ? publicDisplayPacks
-      : activeTab === "public"
-        ? publicDisplayPacks
-        : proDisplayPacks;
+  // Badge counts for tabs
+  const professorPackCount = displayPacks.filter((p) => p.is_public === false).length;
+  const studentPackCount = displayPacks.filter((p) => p.is_public === true).length;
 
   return (
     <section className="pt-0 pb-20" id="packages-listing">
@@ -253,11 +321,65 @@ const PackagesListing = ({ title, subtitle } = {}) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => loadPacks()}
+              onClick={() => loadPacks(selectedRegion?.id ?? null)}
               className="text-red-800 hover:bg-red-100 h-8"
             >
               Recarregar
             </Button>
+          </div>
+        )}
+
+        {/* ── Region filter — hidden for pro professors (they don't select a region when buying) ── */}
+        {regions.length > 0 && !isProProfessor && (
+          <div className="flex justify-center mb-8">
+            <div className="relative inline-block" data-region-dropdown>
+              <button
+                onClick={() => setRegionDropdownOpen((v) => !v)}
+                className="flex items-center gap-2 rounded-full border border-sky-200 bg-white px-5 py-2.5 text-sm font-semibold text-sky-900 shadow-sm transition-all hover:border-sky-400 hover:shadow-md focus:outline-none"
+              >
+                <MapPin className="h-4 w-4 text-sky-500" />
+                {selectedRegion ? selectedRegion.name : "Todas as regiões"}
+                <ChevronDown
+                  className={`h-4 w-4 text-sky-400 transition-transform duration-200 ${regionDropdownOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {regionDropdownOpen && (
+                <div className="absolute left-1/2 z-50 mt-2 w-52 -translate-x-1/2 overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-xl animate-in fade-in slide-in-from-top-2">
+                  <button
+                    onClick={() => { storeLoginRegion(null); setSelectedRegion(null); setRegionDropdownOpen(false); }}
+                    className={`flex w-full items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-sky-50 ${
+                      !selectedRegion ? "font-bold text-sky-900 bg-sky-50" : "text-sky-800"
+                    }`}
+                  >
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-sky-100 text-sky-600">
+                      <MapPin className="h-3.5 w-3.5" />
+                    </span>
+                    Todas as regiões
+                  </button>
+                  {regions.map((region) => (
+                    <button
+                      key={region.id}
+                      onClick={() => { storeLoginRegion(region); setSelectedRegion(region); setRegionDropdownOpen(false); }}
+                      className={`flex w-full items-center gap-3 border-t border-sky-50 px-4 py-3 text-sm transition-colors hover:bg-sky-50 ${
+                        selectedRegion?.id === region.id
+                          ? "font-bold text-sky-900 bg-sky-50"
+                          : "text-sky-800"
+                      }`}
+                    >
+                      <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                        selectedRegion?.id === region.id
+                          ? "bg-sky-900 text-white"
+                          : "bg-sky-100 text-sky-600"
+                      }`}>
+                        {region.name.charAt(0).toUpperCase()}
+                      </span>
+                      {region.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -280,7 +402,7 @@ const PackagesListing = ({ title, subtitle } = {}) => {
                       : "bg-sky-100 text-sky-700"
                   }`}
                 >
-                  {publicDisplayPacks.length}
+                  {studentPackCount}
                 </span>
               </button>
 
@@ -300,89 +422,129 @@ const PackagesListing = ({ title, subtitle } = {}) => {
                       : "bg-sky-100 text-sky-700"
                   }`}
                 >
-                  {proDisplayPacks.length}
+                  {professorPackCount}
                 </span>
               </button>
             </div>
           </div>
         )}
 
-        {loading ? (
-          <div className="mx-auto max-w-6xl">
-            <p className="text-center text-sky-900">A carregar packs...</p>
+        {/* Non-buyer message: public professor or pro student */}
+        {authenticated && !canBuyPacks && (
+          <div className="mx-auto max-w-2xl py-12 text-center">
+            <div className="rounded-2xl border border-sky-100 bg-sky-50 px-8 py-10">
+              <p className="text-lg font-semibold text-sky-900 mb-2">
+                {isProfessor
+                  ? "Compra de packs não disponível"
+                  : "Acesso gerido pelo seu professor"}
+              </p>
+              <p className="text-sm text-sky-700">
+                {isProfessor
+                  ? "Os professores públicos não podem comprar packs. Contacte o administrador para mais informações."
+                  : "Os estudantes pro têm o acesso gerido pelo seu professor. Contacte o seu professor para mais informações."}
+              </p>
+            </div>
           </div>
-        ) : visiblePacks.length === 0 && !error ? (
-          <div className="mx-auto max-w-6xl py-12">
-            <p className="text-center text-sky-900">
-              {activeTab === "public"
-                ? "Nenhum pack público disponível no momento."
-                : "Nenhum pack pro disponível no momento."}
-            </p>
-          </div>
-        ) : (
-          <div className="mx-auto grid max-w-6xl grid-cols-1 justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {visiblePacks.map((pkg, index) => (
-              <Card
-                key={`${pkg.id || pkg.name}-${index}`}
-                className="flex h-full w-full max-w-xs flex-col overflow-hidden rounded-xl border-none bg-linear-to-b from-sky-900/30 via-[#f1f5f8] to-white p-0 shadow-none transition-shadow duration-300 hover:shadow-lg"
-              >
-                <div className="relative h-[200px] w-full shrink-0 overflow-hidden bg-gray-200">
-                  {pkg.image ? (
-                    <Image
-                      src={pkg.image}
-                      alt={pkg.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      unoptimized
-                      onError={(e) => {
-                        console.error("Image failed to load:", pkg.image);
-                        e.target.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gray-200 text-gray-400">
-                      Sem imagem
-                    </div>
-                  )}
-                </div>
+        )}
 
-                <CardContent className="flex flex-1 flex-col p-4 text-left font-sans">
-                  <h3 className="mb-3 font-sans text-2xl font-bold text-sky-900">
-                    {pkg.name}
-                  </h3>
-                  <p className="mb-3 flex-1 font-sans text-base font-normal text-sky-900">
-                    {pkg.description}
+        {canBuyPacks && (
+          loading ? (
+            <div className="mx-auto max-w-6xl">
+              <p className="text-center text-sky-900">A carregar packs...</p>
+            </div>
+          ) : visiblePacks.length === 0 && !error ? (
+            <div className="mx-auto max-w-6xl py-12">
+              <div className="inline-flex flex-col items-center gap-2 rounded-2xl border border-sky-100 bg-sky-50 px-8 py-8">
+                <MapPin className="h-8 w-8 text-sky-300" />
+                <p className="text-base font-semibold text-sky-900">
+                  {selectedRegion
+                    ? `Nenhum pack disponível para ${selectedRegion.name}.`
+                    : "Nenhum pack disponível no momento."}
+                </p>
+                {selectedRegion && (
+                  <p className="text-sm text-sky-600">
+                    Tente outra região ou consulte "Todas as regiões".
                   </p>
-                  <p className="mb-6 font-mono text-lg font-semibold text-sky-900">
-                    {pkg.price}
-                  </p>
-
-                  <div className="mt-auto flex flex-col items-start gap-3">
-                    <Button
-                      onClick={() => handleAgendarClick(pkg)}
-                      className="w-full rounded-full bg-sky-900 px-6 py-2 text-base font-medium text-white normal-case sm:w-auto"
-                    >
-                      Agendar
-                    </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="mx-auto grid max-w-6xl grid-cols-1 justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {visiblePacks.map((pkg, index) => (
+                <Card
+                  key={`${pkg.id || pkg.name}-${index}`}
+                  className="flex h-full w-full max-w-xs flex-col overflow-hidden rounded-xl border-none bg-linear-to-b from-sky-900/30 via-[#f1f5f8] to-white p-0 shadow-none transition-shadow duration-300 hover:shadow-lg"
+                >
+                  <div className="relative h-[200px] w-full shrink-0 overflow-hidden bg-gray-200">
+                    {pkg.image ? (
+                      <Image
+                        src={pkg.image}
+                        alt={pkg.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        unoptimized
+                        onError={(e) => {
+                          console.error("Image failed to load:", pkg.image);
+                          e.target.style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gray-200 text-gray-400">
+                        Sem imagem
+                      </div>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+
+                  <CardContent className="flex flex-1 flex-col p-4 text-left font-sans">
+                    <h3 className="mb-3 font-sans text-2xl font-bold text-sky-900">
+                      {pkg.name}
+                    </h3>
+                    <p className="mb-3 flex-1 font-sans text-base font-normal text-sky-900">
+                      {pkg.description}
+                    </p>
+                    <p className="mb-6 font-mono text-lg font-semibold text-sky-900">
+                      {pkg.price}
+                    </p>
+
+                    <div className="mt-auto flex flex-col items-start gap-3">
+                      <Button
+                        onClick={() => handleAgendarClick(pkg)}
+                        className="w-full rounded-full bg-sky-900 px-6 py-2 text-base font-medium text-white normal-case sm:w-auto"
+                      >
+                        Agendar
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )
         )}
       </div>
       <LoginModal
         open={loginModalOpen}
         onOpenChange={setLoginModalOpen}
         onLogin={handleLoginSuccess}
+        onOpenRegister={() => setRegisterModalOpen(true)}
+      />
+      <RegisterModal
+        open={registerModalOpen}
+        onOpenChange={setRegisterModalOpen}
+        onOpenLogin={() => { setRegisterModalOpen(false); setLoginModalOpen(true); }}
       />{" "}
       <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
         <DialogContent className="sm:max-w-[450px] rounded-3xl p-6 border-none shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-sky-900 text-center mb-4">
+            <DialogTitle className="text-2xl font-bold text-sky-900 text-center mb-1">
               Método de Pagamento
             </DialogTitle>
+            {selectedRegion && (
+              <p className="text-center text-sm text-sky-600 flex items-center justify-center gap-1.5 mb-2">
+                <MapPin className="h-3.5 w-3.5" />
+                Região: <span className="font-semibold">{selectedRegion.name}</span>
+              </p>
+            )}
           </DialogHeader>
           <div className="grid gap-4">
             {error && (

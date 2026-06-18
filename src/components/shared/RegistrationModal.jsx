@@ -11,9 +11,21 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, RefreshCw } from "lucide-react";
 import { studentApi, regionsApi } from "@/lib/api";
 import { storeAuthData } from "@/lib/auth";
+
+function generateStrongPassword() {
+  const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const lower = "abcdefghijklmnopqrstuvwxyz";
+  const digits = "0123456789";
+  const special = "!@#$%^&*";
+  const all = upper + lower + digits + special;
+  const pick = (s) => s[Math.floor(Math.random() * s.length)];
+  const chars = [pick(upper), pick(lower), pick(digits), pick(special)];
+  for (let i = 4; i < 14; i++) chars.push(pick(all));
+  return chars.sort(() => Math.random() - 0.5).join("");
+}
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -78,6 +90,18 @@ const RegistrationModal = ({ open, onOpenChange, onRegister, initialRole = null 
   const [info, setInfo] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [pwCopied, setPwCopied] = useState(false);
+
+  const handleSuggestPassword = () => {
+    const pw = generateStrongPassword();
+    setFormData((prev) => ({ ...prev, password: pw, confirmPassword: pw }));
+    setShowPassword(true);
+    setShowConfirmPassword(true);
+    navigator.clipboard?.writeText(pw).then(() => {
+      setPwCopied(true);
+      setTimeout(() => setPwCopied(false), 2000);
+    });
+  };
   const resendTimerRef = useRef(null);
   const [resendCooldown, setResendCooldown] = useState(0);
 
@@ -277,27 +301,38 @@ const RegistrationModal = ({ open, onOpenChange, onRegister, initialRole = null 
               required
             />
 
-            <FormField
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              label="Password"
-              placeholder="Minimum 8 characters"
-              value={formData.password}
-              onChange={handleChange}
-              disabled={loading}
-              required
-              rightAddon={
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="focus:outline-none"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              }
-            />
+            <div>
+              <FormField
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                label="Password"
+                placeholder="Minimum 8 characters"
+                value={formData.password}
+                onChange={handleChange}
+                disabled={loading}
+                required
+                rightAddon={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                }
+              />
+              <button
+                type="button"
+                onClick={handleSuggestPassword}
+                disabled={loading}
+                className="mt-1 flex items-center gap-1 text-xs font-medium text-[#398ffc] hover:text-[#2878dc] disabled:opacity-50"
+              >
+                <RefreshCw size={11} />
+                {pwCopied ? "Copied to clipboard!" : "Suggest a strong password"}
+              </button>
+            </div>
 
             <FormField
               id="confirmPassword"

@@ -3,7 +3,8 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import RegistrationModal from "./RegistrationModal";
-import { getUserInfo, onAuthChange } from "@/lib/auth";
+import SettingsModal from "./SettingsModal";
+import { getUserInfo, onAuthChange, clearAuthData } from "@/lib/auth";
 
 const BUTTON_VARIANTS = {
   mobile:
@@ -18,6 +19,7 @@ const RegistrationButton = ({ variant = "desktop", className = "" }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownStep, setDropdownStep] = useState("role");
   const [modalOpen, setModalOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [user, setUser] = useState(null);
   const dropdownRef = useRef(null);
@@ -47,6 +49,7 @@ const RegistrationButton = ({ variant = "desktop", className = "" }) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
         setDropdownStep("role");
+        setSettingsOpen(false);
       }
     };
 
@@ -78,17 +81,51 @@ const RegistrationButton = ({ variant = "desktop", className = "" }) => {
 
   if (user) {
     const initials = user.fullName
-      ? user.fullName
-          .split(" ")
-          .slice(0, 2)
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
+      ? user.fullName.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase()
       : user.email?.[0]?.toUpperCase() ?? "U";
 
     return (
-      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#15467d] text-white text-xs font-semibold select-none">
-        {initials}
+      <div className="relative" ref={dropdownRef}>
+        {/* Profile circle */}
+        <button
+          onClick={() => {
+            setSettingsOpen(false);
+            setDropdownOpen((prev) => !prev);
+          }}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-[#15467d] text-white text-xs font-semibold select-none cursor-pointer hover:bg-[#88a9c3] transition-colors duration-200"
+        >
+          {initials}
+        </button>
+
+        {/* Menu dropdown */}
+        {dropdownOpen && (
+          <div className="absolute top-full mt-4 right-0 sm:right-[-50px] z-50 rounded-md border border-gray-200 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.08)] overflow-hidden">
+            <div className="flex flex-row">
+              <button
+                onClick={() => {
+                  setDropdownOpen(false);
+                  setSettingsOpen(true);
+                }}
+                className="px-5 py-3 text-[15px] font-medium text-[#15467d] hover:bg-[#f0f5fa] transition-colors duration-150 whitespace-nowrap cursor-pointer border-r border-[#e0e0e0]"
+              >
+                Settings
+              </button>
+              <button
+                onClick={() => {
+                  clearAuthData();
+                  setDropdownOpen(false);
+                  setUser(null);
+                }}
+                className="px-5 py-3 text-[15px] font-medium text-[#15467d] hover:bg-[#f0f5fa] transition-colors duration-150 whitespace-nowrap cursor-pointer"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Settings panel — drops below profile button */}
+        <SettingsModal open={settingsOpen} />
       </div>
     );
   }

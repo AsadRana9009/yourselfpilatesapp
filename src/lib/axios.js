@@ -37,12 +37,24 @@ api.interceptors.response.use(
       return api(originalRequest);
     }
 
-    const message =
-      error.response?.data?.detail ||
-      error.response?.data?.message ||
-      error.response?.data?.error ||
+    const data = error.response?.data;
+    let message =
+      data?.detail ||
+      data?.message ||
+      data?.error ||
       error.message ||
       "An unexpected error occurred";
+
+    // Surface DRF field-level errors (e.g. {"email": ["..."], "password": ["..."]})
+    if (!data?.detail && !data?.message && !data?.error && data && typeof data === "object") {
+      const fieldErrors = Object.entries(data)
+        .map(([field, errors]) => {
+          const msgs = Array.isArray(errors) ? errors.join(" ") : String(errors);
+          return field === "non_field_errors" ? msgs : `${field}: ${msgs}`;
+        })
+        .join(" | ");
+      if (fieldErrors) message = fieldErrors;
+    }
 
     // Don't log 401s as they are often handled/expected
     if (error.response?.status !== 401) {

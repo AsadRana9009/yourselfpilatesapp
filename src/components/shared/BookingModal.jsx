@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { bookingApi, regionsApi } from "@/lib/api";
+import { bookingApi, regionsApi, studentsApi } from "@/lib/api";
 
 const TIME_SLOTS = [
   "06:00 - 07:00","07:00 - 08:00","08:00 - 09:00","09:00 - 10:00",
@@ -48,13 +48,12 @@ const NativeSelect = ({ value, onChange, disabled, children, placeholder }) => (
   </div>
 );
 
-const BookingModal = ({ open, onOpenChange, role, onSuccess }) => {
+const BookingModal = ({ open, onOpenChange, role, isPublic, onSuccess }) => {
   const [regionId, setRegionId] = useState("");
   const [professorId, setProfessorId] = useState("");
   const [date, setDate] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
   const [title, setTitle] = useState("");
-  const [bookingType, setBookingType] = useState("pro");
   const [notes, setNotes] = useState("");
   const [regions, setRegions] = useState([]);
   const [professors, setProfessors] = useState([]);
@@ -64,8 +63,29 @@ const BookingModal = ({ open, onOpenChange, role, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [regionDropdownOpen, setRegionDropdownOpen] = useState(false);
+  const [myStudents, setMyStudents] = useState([]);
+  const [studentsLoading, setStudentsLoading] = useState(false);
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+  const [studentSearch, setStudentSearch] = useState("");
+  const [studentDropdownOpen, setStudentDropdownOpen] = useState(false);
 
   const isProfessor = role === "professor" || role === "teacher";
+  // Pro professor: self-registered, pays for their own hours, no region
+  const isProProfessor = isProfessor && isPublic === false;
+  // Public student: self-registered (is_public=true), buys region packs, books public professors
+  // Pro Professor Students (is_public=false, role=student) must NOT independently select regions/professors
+  const isStudent = !isProfessor && isPublic === true;
+
+  // Close region dropdown on outside click
+  useEffect(() => {
+    if (!regionDropdownOpen) return;
+    const handler = (e) => {
+      if (!e.target.closest("[data-booking-region-dropdown]")) setRegionDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [regionDropdownOpen]);
 
   // Reset all state when modal closes
   useEffect(() => {
@@ -75,12 +95,16 @@ const BookingModal = ({ open, onOpenChange, role, onSuccess }) => {
       setDate("");
       setTimeSlot("");
       setTitle("");
-      setBookingType("pro");
       setNotes("");
       setProfessors([]);
       setAvailableSlots([]);
       setError("");
       setSuccess(false);
+      setRegionDropdownOpen(false);
+      setMyStudents([]);
+      setSelectedStudentIds([]);
+      setStudentSearch("");
+      setStudentDropdownOpen(false);
     }
   }, [open]);
 
@@ -91,13 +115,24 @@ const BookingModal = ({ open, onOpenChange, role, onSuccess }) => {
     }
   }, [open]);
 
-  // When region changes (student flow): reload professors filtered by region
+  // Load professor's own students on open (pro professor flow)
+  useEffect(() => {
+    if (!open || !isProfessor) return;
+    setStudentsLoading(true);
+    studentsApi.getMyStudents()
+      .then(setMyStudents)
+      .catch(() => setMyStudents([]))
+      .finally(() => setStudentsLoading(false));
+  }, [open, isProfessor]);
+
+  // When region changes (student flow): reload public professors filtered by region
   useEffect(() => {
     if (!open || isProfessor) return;
     setProfessorId("");
+    if (!regionId) { setProfessors([]); return; }
     setProfessorsLoading(true);
     bookingApi
-      .getProfessors(regionId || undefined)
+      .getProfessors(regionId, true) // isPublicOnly=true — students can only book public professors
       .then(setProfessors)
       .catch(() => setProfessors([]))
       .finally(() => setProfessorsLoading(false));
@@ -119,11 +154,11 @@ const BookingModal = ({ open, onOpenChange, role, onSuccess }) => {
     e.preventDefault();
     setError("");
 
-    if (!isProfessor && !regionId) {
+    if (isStudent && !regionId) {
       setError("Please select a region.");
       return;
     }
-    if (!isProfessor && !professorId) {
+    if (isStudent && !professorId) {
       setError("Please select a professor.");
       return;
     }
@@ -134,25 +169,25 @@ const BookingModal = ({ open, onOpenChange, role, onSuccess }) => {
 
     setLoading(true);
     try {
-      const region = regionId ? Number(regionId) : null;
       if (isProfessor) {
+        // Pro professor: type always "pro", no region
         await bookingApi.createBooking({
           booking_date: date,
           time_slot: timeSlot,
-          booking_type: bookingType,
+          booking_type: "pro",
           title: title || undefined,
           notes: notes || undefined,
-          region,
-          students: [],
+          students: selectedStudentIds,
         });
       } else {
+        // Public student: books a public professor in the selected region
         await bookingApi.studentBook({
           professor: Number(professorId),
           booking_date: date,
           time_slot: timeSlot,
+          region: Number(regionId),
           notes: notes || undefined,
           title: title || undefined,
-          region,
         });
       }
       setSuccess(true);
@@ -205,39 +240,61 @@ const BookingModal = ({ open, onOpenChange, role, onSuccess }) => {
               </div>
             )}
 
-            {/* 1. Region — shown for both students and professors */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-[#15467d]">
-                Region {isProfessor && <span className="text-gray-400 font-normal">(optional)</span>}
-              </label>
-              <div className="relative">
-                <select
-                  value={regionId}
-                  onChange={(e) => setRegionId(e.target.value)}
-                  disabled={loading}
-                  className={selectClass}
-                >
-                  <option value="">{isProfessor ? "No specific region" : "Select a region"}</option>
-                  {regions
-                    .filter((r) => r.is_active)
-                    .map((r) => (
-                      <option key={r.id} value={String(r.id)}>
-                        {r.name}
-                      </option>
-                    ))}
-                </select>
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m6 9 6 6 6-6"/>
-                  </svg>
-                </span>
-              </div>
-            </div>
-
-            {/* 2. Professor — students only, filtered by selected region */}
-            {!isProfessor && (
+            {/* 1. Region — students only (pro professors have no region) */}
+            {isStudent && (
               <div className="space-y-1">
-                <label className="text-sm font-medium text-[#15467d]">Professor</label>
+                <label className="text-sm font-medium text-[#15467d]">Region</label>
+                <div className="relative" data-booking-region-dropdown>
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => setRegionDropdownOpen((v) => !v)}
+                    className={`${selectClass} flex items-center justify-between text-left font-normal`}
+                  >
+                    <span className={regionId ? "text-[#3b3d42]" : "text-[#8b9daf]"}>
+                      {regionId
+                        ? regions.find((r) => String(r.id) === regionId)?.name ?? "Select a region"
+                        : "Select a region"}
+                    </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-gray-400 transition-transform duration-200 ${regionDropdownOpen ? "rotate-180" : ""}`}>
+                      <path d="m6 9 6 6 6-6"/>
+                    </svg>
+                  </button>
+
+                  {regionDropdownOpen && (
+                    <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-[#c8d4e0] bg-white shadow-xl">
+                      <button
+                        type="button"
+                        onClick={() => { setRegionId(""); setRegionDropdownOpen(false); }}
+                        className={`flex w-full items-center px-4 py-3 text-sm transition-colors hover:bg-sky-50 ${!regionId ? "font-semibold text-[#15467d] bg-sky-50" : "text-[#8b9daf]"}`}
+                      >
+                        Select a region
+                      </button>
+                      {regions.filter((r) => r.is_active).map((r) => (
+                        <button
+                          key={r.id}
+                          type="button"
+                          onClick={() => { setRegionId(String(r.id)); setRegionDropdownOpen(false); }}
+                          className={`flex w-full items-center gap-2.5 border-t border-[#e8f0f7] px-4 py-3 text-sm transition-colors hover:bg-sky-50 ${String(r.id) === regionId ? "font-semibold text-[#15467d] bg-sky-50" : "text-[#3b3d42]"}`}
+                        >
+                          <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${String(r.id) === regionId ? "bg-[#15467d] text-white" : "bg-sky-100 text-sky-600"}`}>
+                            {r.name.charAt(0).toUpperCase()}
+                          </span>
+                          {r.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* 2. Professor — students only, only public professors, filtered by selected region */}
+            {isStudent && (
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-[#15467d]">
+                  Professor <span className="text-[11px] text-[#88a9c3] font-normal">(public)</span>
+                </label>
                 <NativeSelect
                   value={professorId}
                   onChange={setProfessorId}
@@ -248,9 +305,8 @@ const BookingModal = ({ open, onOpenChange, role, onSuccess }) => {
                       : professorsLoading
                       ? "Loading professors…"
                       : professors.length === 0
-                      ? "No professors in this region"
+                      ? "No public professors in this region"
                       : "Select a professor"
-
                   }
                 >
                   {professors.map((p) => (
@@ -259,6 +315,116 @@ const BookingModal = ({ open, onOpenChange, role, onSuccess }) => {
                     </option>
                   ))}
                 </NativeSelect>
+              </div>
+            )}
+
+            {/* Booking type info badge — pro professor always books as Pro */}
+            {isProProfessor && (
+              <div className="flex items-center gap-2 rounded-lg bg-[#f0f5fa] px-3 py-2.5 border border-[#c8d4e0]">
+                <span className="h-2 w-2 rounded-full bg-[#15467d]" />
+                <span className="text-sm text-[#15467d] font-medium">Booking type: <strong>Pro</strong></span>
+              </div>
+            )}
+
+            {/* 2. Students — pro professors select from their own students */}
+            {isProfessor && (
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-[#15467d]">
+                  Students <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                {studentsLoading ? (
+                  <p className="text-xs text-[#88a9c3] py-2">Loading students…</p>
+                ) : myStudents.length === 0 ? (
+                  <p className="text-xs italic text-[#88a9c3] py-2">No students added yet.</p>
+                ) : (
+                  <div className="relative">
+                    {/* Selected student tags */}
+                    {selectedStudentIds.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-1.5">
+                        {selectedStudentIds.map((id) => {
+                          const s = myStudents.find((x) => x.id === id);
+                          if (!s) return null;
+                          return (
+                            <span
+                              key={id}
+                              className="inline-flex items-center gap-1 rounded-full bg-[#e8f0f7] px-2.5 py-1 text-xs text-[#15467d] font-medium"
+                            >
+                              {s.full_name}
+                              <button
+                                type="button"
+                                onClick={() => setSelectedStudentIds((prev) => prev.filter((x) => x !== id))}
+                                className="ml-0.5 text-[#88a9c3] hover:text-[#15467d]"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Search input */}
+                    <div className="relative">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#88a9c3]">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                      </span>
+                      <input
+                        type="text"
+                        placeholder="Select students..."
+                        value={studentSearch}
+                        onChange={(e) => { setStudentSearch(e.target.value); setStudentDropdownOpen(true); }}
+                        onFocus={() => setStudentDropdownOpen(true)}
+                        disabled={loading}
+                        className="h-12 w-full rounded-md border-2 border-[#c8d4e0] bg-white pl-8 pr-3 text-sm text-[#3b3d42] placeholder:text-[#8b9daf] focus:border-[#88a9c3] focus:outline-none focus:ring-2 focus:ring-[#88a9c3]/20 disabled:cursor-not-allowed disabled:opacity-50"
+                      />
+                    </div>
+
+                    {/* Dropdown list */}
+                    {studentDropdownOpen && (
+                      <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-[#c8d4e0] bg-white shadow-xl">
+                        {myStudents
+                          .filter((s) =>
+                            s.full_name.toLowerCase().includes(studentSearch.toLowerCase())
+                          )
+                          .map((s) => {
+                            const selected = selectedStudentIds.includes(s.id);
+                            return (
+                              <button
+                                key={s.id}
+                                type="button"
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  setSelectedStudentIds((prev) =>
+                                    selected ? prev.filter((id) => id !== s.id) : [...prev, s.id]
+                                  );
+                                  setStudentSearch("");
+                                }}
+                                className={`flex w-full items-center justify-between px-4 py-2.5 text-sm transition-colors hover:bg-sky-50 border-b border-[#e8f0f7] last:border-0 ${selected ? "bg-sky-50 text-[#15467d] font-medium" : "text-[#3b3d42]"}`}
+                              >
+                                <span>{s.full_name}</span>
+                                {selected && (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#15467d]"><path d="M20 6 9 17l-5-5"/></svg>
+                                )}
+                              </button>
+                            );
+                          })}
+                        {myStudents.filter((s) =>
+                          s.full_name.toLowerCase().includes(studentSearch.toLowerCase())
+                        ).length === 0 && (
+                          <p className="px-4 py-3 text-sm text-[#88a9c3] italic">No students found.</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Click-outside close */}
+                    {studentDropdownOpen && (
+                      <div
+                        className="fixed inset-0 z-40"
+                        onMouseDown={() => setStudentDropdownOpen(false)}
+                      />
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -293,16 +459,6 @@ const BookingModal = ({ open, onOpenChange, role, onSuccess }) => {
               </NativeSelect>
             </div>
 
-            {/* Professor: booking type */}
-            {isProfessor && (
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-[#15467d]">Booking Type</label>
-                <NativeSelect value={bookingType} onChange={setBookingType} disabled={loading}>
-                  <option value="pro">Pro</option>
-                  <option value="public">Public</option>
-                </NativeSelect>
-              </div>
-            )}
 
             {/* Title (optional) */}
             <div className="space-y-1">

@@ -1,4 +1,5 @@
 const AUTH_STORAGE_KEY = "yourselfpilates_auth";
+const REGION_STORAGE_KEY = "yourselfpilates_login_region";
 const AUTH_CHANGE_EVENT = "authChange";
 
 const dispatchAuthChange = () => {
@@ -39,7 +40,7 @@ export function storeAuthData(authData) {
   let dataToStore;
 
   if (authData.tokens && authData.user) {
-    // Student JWT login: { tokens: { access, refresh }, user: { id, email, full_name, role, ... } }
+    // Student JWT login: { tokens: { access, refresh }, user: { id, email, full_name, role, is_public, ... } }
     dataToStore = {
       accessToken: authData.tokens.access,
       refreshToken: authData.tokens.refresh,
@@ -47,18 +48,20 @@ export function storeAuthData(authData) {
       email: authData.user.email,
       fullName: authData.user.full_name,
       role: authData.user.role,
+      isPublic: authData.user.is_public ?? true,
       userId: String(authData.user.id),
       isVerified: authData.user.is_verified,
       timestamp: Date.now(),
     };
   } else {
-    // DRF token login: { token, email, full_name, role, user_id }
+    // DRF token login: { token, email, full_name, role, is_public, user_id }
     dataToStore = {
       accessToken: authData.token,
       tokenType: "Token",
       email: authData.email,
       fullName: authData.full_name,
       role: authData.role,
+      isPublic: authData.is_public ?? false,
       userId: authData.user_id,
       timestamp: Date.now(),
     };
@@ -92,7 +95,16 @@ export function isAuthenticated() {
 
 export function clearAuthData() {
   safeStorage.remove(AUTH_STORAGE_KEY);
+  safeStorage.remove(REGION_STORAGE_KEY);
   dispatchAuthChange();
+}
+
+export function storeLoginRegion(region) {
+  safeStorage.set(REGION_STORAGE_KEY, region ?? null);
+}
+
+export function getLoginRegion() {
+  return safeStorage.get(REGION_STORAGE_KEY);
 }
 
 export function getUserInfo() {
@@ -103,6 +115,7 @@ export function getUserInfo() {
     email: authData.email,
     fullName: authData.fullName,
     role: authData.role,
+    isPublic: authData.isPublic ?? null,
     userId: authData.userId,
   };
 }

@@ -88,8 +88,11 @@ export const userApi = {
 };
 
 export const subscriptionsApi = {
-  getPacks: async () => {
-    const { data } = await api.get("/api/subscriptions/packs/");
+  getPacks: async (regionId = null) => {
+    const url = regionId
+      ? `/api/subscriptions/packs/?region=${regionId}`
+      : "/api/subscriptions/packs/";
+    const { data } = await api.get(url);
 
     return data.results.map((pack) => ({
       id: pack.id,
@@ -100,15 +103,18 @@ export const subscriptionsApi = {
       // PackageCard shows the "No image" placeholder instead of crashing.
       image: pack.image || undefined,
       is_public: pack.is_public,
+      target_role: pack.target_role ?? 'professor',
+      region: pack.region ?? null,
       price: `Preço: ${parseFloat(pack.price).toFixed(2)}€`,
       link: "/agendar-espaco",
     }));
   },
 
-  subscribe: async (packId, paymentData) => {
+  subscribe: async (packId, paymentData, regionId = null) => {
+    const payload = regionId ? { ...paymentData, region_id: regionId } : paymentData;
     const { data } = await api.post(
       `/api/subscriptions/packs/${packId}/subscribe/`,
-      paymentData
+      payload
     );
     return data;
   },
@@ -146,9 +152,12 @@ export const bookingApi = {
     return data;
   },
 
-  getProfessors: async (regionId) => {
-    const url = regionId ? `/api/user/professors/?region=${regionId}` : '/api/user/professors/';
-    const { data } = await api.get(url);
+  getProfessors: async (regionId, isPublicOnly = false) => {
+    const params = new URLSearchParams();
+    if (regionId) params.set('region', regionId);
+    if (isPublicOnly) params.set('is_public', 'true');
+    const query = params.toString();
+    const { data } = await api.get(`/api/user/professors/${query ? `?${query}` : ''}`);
     return data;
   },
 
@@ -166,6 +175,13 @@ export const bookingApi = {
 export const regionsApi = {
   getRegions: async () => {
     const { data } = await api.get('/api/subscriptions/regions/');
+    return Array.isArray(data) ? data : (data.results ?? []);
+  },
+};
+
+export const studentsApi = {
+  getMyStudents: async () => {
+    const { data } = await api.get('/api/user/students/');
     return Array.isArray(data) ? data : (data.results ?? []);
   },
 };
