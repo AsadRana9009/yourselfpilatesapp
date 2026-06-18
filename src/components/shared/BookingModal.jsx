@@ -330,7 +330,7 @@ const BookingModal = ({ open, onOpenChange, role, isPublic, onSuccess }) => {
             {isProfessor && (
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-[#15467d]">
-                  Students <span className="text-gray-400 font-normal">(optional)</span>
+                  Students
                 </label>
                 {studentsLoading ? (
                   <p className="text-xs text-[#88a9c3] py-2">Loading students…</p>
