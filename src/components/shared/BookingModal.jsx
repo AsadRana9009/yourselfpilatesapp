@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { bookingApi, regionsApi, studentsApi } from "@/lib/api";
+import { getUserRegionId } from "@/lib/auth";
 
 const TIME_SLOTS = [
   "06:00 - 07:00","07:00 - 08:00","08:00 - 09:00","09:00 - 10:00",
@@ -73,9 +74,12 @@ const BookingModal = ({ open, onOpenChange, role, isPublic, onSuccess }) => {
   const isProfessor = role === "professor" || role === "teacher";
   // Pro professor: self-registered, pays for their own hours, no region
   const isProProfessor = isProfessor && isPublic === false;
+  // Public professor: has a region, books public students
+  const isPublicProfessor = isProfessor && isPublic === true;
   // Public student: self-registered (is_public=true), buys region packs, books public professors
-  // Pro Professor Students (is_public=false, role=student) must NOT independently select regions/professors
   const isStudent = !isProfessor && isPublic === true;
+  // Pro student: managed by a professor, deducts from professor's hours, no region
+  const isProStudent = !isProfessor && isPublic === false;
 
   // Close region dropdown on outside click
   useEffect(() => {
@@ -115,28 +119,49 @@ const BookingModal = ({ open, onOpenChange, role, isPublic, onSuccess }) => {
     }
   }, [open]);
 
-  // Load professor's own students on open (pro professor flow)
+  // Load students on open based on professor type
   useEffect(() => {
     if (!open || !isProfessor) return;
     setStudentsLoading(true);
-    studentsApi.getMyStudents()
-      .then(setMyStudents)
-      .catch(() => setMyStudents([]))
-      .finally(() => setStudentsLoading(false));
-  }, [open, isProfessor]);
+    if (isPublicProfessor) {
+      // Public professor: load public students in the professor's region
+      const professorRegionId = getUserRegionId();
+      studentsApi.getPublicStudentsByRegion(professorRegionId)
+        .then(setMyStudents)
+        .catch(() => setMyStudents([]))
+        .finally(() => setStudentsLoading(false));
+    } else {
+      // Pro professor: load their assigned students
+      studentsApi.getMyStudents()
+        .then(setMyStudents)
+        .catch(() => setMyStudents([]))
+        .finally(() => setStudentsLoading(false));
+    }
+  }, [open, isProfessor, isPublicProfessor]);
 
-  // When region changes (student flow): reload public professors filtered by region
+  // When region changes (public student flow): reload public professors filtered by region
   useEffect(() => {
-    if (!open || isProfessor) return;
+    if (!open || isProfessor || isProStudent) return;
     setProfessorId("");
     if (!regionId) { setProfessors([]); return; }
     setProfessorsLoading(true);
     bookingApi
-      .getProfessors(regionId, true) // isPublicOnly=true — students can only book public professors
+      .getProfessors(regionId, true) // isPublicOnly=true — public students can only book public professors
       .then(setProfessors)
       .catch(() => setProfessors([]))
       .finally(() => setProfessorsLoading(false));
-  }, [open, isProfessor, regionId]);
+  }, [open, isProfessor, isProStudent, regionId]);
+
+  // Pro student flow: load only pro professors (is_public=false)
+  useEffect(() => {
+    if (!open || !isProStudent) return;
+    setProfessorsLoading(true);
+    bookingApi
+      .getProfessors(null, false, true) // isProOnly=true → pro professors only
+      .then(setProfessors)
+      .catch(() => setProfessors([]))
+      .finally(() => setProfessorsLoading(false));
+  }, [open, isProStudent]);
 
   // Load available slots when date changes
   useEffect(() => {
@@ -158,7 +183,7 @@ const BookingModal = ({ open, onOpenChange, role, isPublic, onSuccess }) => {
       setError("Please select a region.");
       return;
     }
-    if (isStudent && !professorId) {
+    if ((isStudent || isProStudent) && !professorId) {
       setError("Please select a professor.");
       return;
     }
@@ -178,6 +203,15 @@ const BookingModal = ({ open, onOpenChange, role, isPublic, onSuccess }) => {
           title: title || undefined,
           notes: notes || undefined,
           students: selectedStudentIds,
+        });
+      } else if (isProStudent) {
+        // Pro student: books any professor, deducts from professor's hours
+        await bookingApi.proStudentBook({
+          professor: Number(professorId),
+          booking_date: date,
+          time_slot: timeSlot,
+          notes: notes || undefined,
+          title: title || undefined,
         });
       } else {
         // Public student: books a public professor in the selected region
@@ -306,6 +340,31 @@ const BookingModal = ({ open, onOpenChange, role, isPublic, onSuccess }) => {
                       ? "Loading professors…"
                       : professors.length === 0
                       ? "No public professors in this region"
+                      : "Select a professor"
+                  }
+                >
+                  {professors.map((p) => (
+                    <option key={p.id} value={String(p.id)}>
+                      {p.full_name}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </div>
+            )}
+
+            {/* Professor — pro students select from all professors */}
+            {isProStudent && (
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-[#15467d]">Professor</label>
+                <NativeSelect
+                  value={professorId}
+                  onChange={setProfessorId}
+                  disabled={loading || professorsLoading}
+                  placeholder={
+                    professorsLoading
+                      ? "Loading professors…"
+                      : professors.length === 0
+                      ? "No professors available"
                       : "Select a professor"
                   }
                 >

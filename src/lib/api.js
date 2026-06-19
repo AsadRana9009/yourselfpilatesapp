@@ -152,10 +152,12 @@ export const bookingApi = {
     return data;
   },
 
-  getProfessors: async (regionId, isPublicOnly = false) => {
+  // isPublic: true → public professors only, false → pro professors only, null → all
+  getProfessors: async (regionId, isPublicOnly = false, isProOnly = false) => {
     const params = new URLSearchParams();
     if (regionId) params.set('region', regionId);
     if (isPublicOnly) params.set('is_public', 'true');
+    if (isProOnly) params.set('is_public', 'false');
     const query = params.toString();
     const { data } = await api.get(`/api/user/professors/${query ? `?${query}` : ''}`);
     return data;
@@ -170,6 +172,11 @@ export const bookingApi = {
     const { data } = await api.post('/api/booking/bookings/student_book/', payload);
     return data;
   },
+
+  proStudentBook: async (payload) => {
+    const { data } = await api.post('/api/booking/bookings/pro_student_book/', payload);
+    return data;
+  },
 };
 
 export const regionsApi = {
@@ -182,6 +189,13 @@ export const regionsApi = {
 export const studentsApi = {
   getMyStudents: async () => {
     const { data } = await api.get('/api/user/students/');
+    return Array.isArray(data) ? data : (data.results ?? []);
+  },
+  getPublicStudentsByRegion: async (regionId) => {
+    const url = regionId
+      ? `/api/user/students/?is_public=true&region=${regionId}`
+      : '/api/user/students/?is_public=true';
+    const { data } = await api.get(url);
     return Array.isArray(data) ? data : (data.results ?? []);
   },
 };

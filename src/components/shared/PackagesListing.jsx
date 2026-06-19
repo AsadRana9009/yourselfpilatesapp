@@ -104,8 +104,10 @@ const PackagesListing = ({ title, subtitle } = {}) => {
     setAuthenticated(isAuthenticated());
     setUserRole(getUserInfo()?.role ?? null);
     setUserIsPublic(getUserInfo()?.isPublic ?? null);
-    // If already logged in on mount, pick up any stored login region
-    if (isAuthenticated()) {
+    // Auto-select region only for professors (not students — students start with all regions)
+    const currentUserInfo = getUserInfo();
+    const isProfessorRole = ['professor', 'teacher'].includes(currentUserInfo?.role);
+    if (isAuthenticated() && isProfessorRole) {
       const stored = getLoginRegion();
       if (stored) setPendingLoginRegion(stored);
     }
@@ -124,8 +126,12 @@ const PackagesListing = ({ title, subtitle } = {}) => {
       setSelectedPaymentMethod(null);
       setPhoneNumber("");
       if (isAuth) {
-        const stored = getLoginRegion();
-        if (stored) setPendingLoginRegion(stored);
+        // Only auto-select region for professors; students default to "All regions"
+        const isProf = ['professor', 'teacher'].includes(userInfo?.role);
+        if (isProf) {
+          const stored = getLoginRegion();
+          if (stored) setPendingLoginRegion(stored);
+        }
       } else {
         setPendingLoginRegion(null);
         setSelectedRegion(null);
@@ -267,16 +273,17 @@ const PackagesListing = ({ title, subtitle } = {}) => {
   };
 
   // Determine who can purchase packs:
-  //   Pro professor  (role=professor/teacher, is_public=false) → CAN buy professor packs
-  //   Public student (role=student,           is_public=true)  → CAN buy student packs
-  //   Public professor / Pro student                          → CANNOT buy
+  //   Pro professor    → professor packs (is_public=false, target_role='professor')
+  //   Public professor → professor packs (is_public=true,  target_role='professor')
+  //   Pro student      → student packs   (is_public=false, target_role='student')
+  //   Public student   → student packs   (is_public=true,  target_role='student')
   const isProfessor = userRole === "professor" || userRole === "teacher";
   const isStudent = userRole === "student";
   const isProProfessor = isProfessor && userIsPublic === false;
+  const isPublicProfessor = isProfessor && userIsPublic === true;
   const isPublicStudent = isStudent && userIsPublic === true;
-  const canBuyPacks = !authenticated || isProProfessor || isPublicStudent;
-  // canBuyPacks is true for unauthenticated (show packs + prompt login),
-  // pro professors, and public students. False for public professors and pro students.
+  const isProStudent = isStudent && userIsPublic === false;
+  const canBuyPacks = !authenticated || isProProfessor || isPublicProfessor || isPublicStudent || isProStudent;
 
   // Tabs are only shown to anonymous users — logged-in users see their filtered packs directly
   const showTabs = !authenticated;
@@ -284,18 +291,24 @@ const PackagesListing = ({ title, subtitle } = {}) => {
   const [activeTab, setActiveTab] = useState("public");
   const displayPacks = packages;
 
-  // Filter packs by is_public to match dashboard grouping:
-  //   is_public=false → Pro Professor packs ("Pro Packs" tab)
-  //   is_public=true  → Public Student packs ("Public Packs" tab)
+  // Filter packs by role and visibility:
+  //   Pro professor    → is_public=false, target_role='professor'
+  //   Public professor → is_public=true,  target_role='professor'
+  //   Pro student      → is_public=false  (any target_role)
+  //   Public student   → is_public=true   (any target_role — admin manages all public packs together)
   const visiblePacks = authenticated
     ? isProProfessor
-      ? displayPacks.filter((p) => p.is_public === false)
-      : isPublicStudent
-        ? displayPacks.filter((p) => p.is_public === true)
-        : displayPacks // admin or other
+      ? displayPacks.filter((p) => p.target_role === "professor" && p.is_public === false)
+      : isPublicProfessor
+        ? displayPacks.filter((p) => p.target_role === "professor" && p.is_public === true)
+        : isProStudent
+          ? displayPacks.filter((p) => p.is_public === false)
+          : isPublicStudent
+            ? displayPacks.filter((p) => p.is_public === true)
+            : displayPacks // admin or other
     : activeTab === "pro"
       ? displayPacks.filter((p) => p.is_public === false)
-      : displayPacks.filter((p) => p.is_public === true); // "public" tab → student packs
+      : displayPacks.filter((p) => p.is_public === true);
 
   // Badge counts for tabs
   const professorPackCount = displayPacks.filter((p) => p.is_public === false).length;
@@ -338,7 +351,9 @@ const PackagesListing = ({ title, subtitle } = {}) => {
                 className="flex items-center gap-2 rounded-full border border-sky-200 bg-white px-5 py-2.5 text-sm font-semibold text-sky-900 shadow-sm transition-all hover:border-sky-400 hover:shadow-md focus:outline-none"
               >
                 <MapPin className="h-4 w-4 text-sky-500" />
-                {selectedRegion ? selectedRegion.name : "Todas as regiões"}
+                <span key={selectedRegion?.id ?? "all"} translate="no">
+                  {selectedRegion ? selectedRegion.name : "Todas as regiões"}
+                </span>
                 <ChevronDown
                   className={`h-4 w-4 text-sky-400 transition-transform duration-200 ${regionDropdownOpen ? "rotate-180" : ""}`}
                 />
@@ -429,19 +444,15 @@ const PackagesListing = ({ title, subtitle } = {}) => {
           </div>
         )}
 
-        {/* Non-buyer message: public professor or pro student */}
+        {/* Non-buyer message: pro students only */}
         {authenticated && !canBuyPacks && (
           <div className="mx-auto max-w-2xl py-12 text-center">
             <div className="rounded-2xl border border-sky-100 bg-sky-50 px-8 py-10">
               <p className="text-lg font-semibold text-sky-900 mb-2">
-                {isProfessor
-                  ? "Compra de packs não disponível"
-                  : "Acesso gerido pelo seu professor"}
+                Acesso gerido pelo seu professor
               </p>
               <p className="text-sm text-sky-700">
-                {isProfessor
-                  ? "Os professores públicos não podem comprar packs. Contacte o administrador para mais informações."
-                  : "Os estudantes pro têm o acesso gerido pelo seu professor. Contacte o seu professor para mais informações."}
+                Os estudantes pro têm o acesso gerido pelo seu professor. Contacte o seu professor para mais informações.
               </p>
             </div>
           </div>

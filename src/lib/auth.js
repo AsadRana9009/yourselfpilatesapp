@@ -51,6 +51,7 @@ export function storeAuthData(authData) {
       isPublic: authData.user.is_public ?? true,
       userId: String(authData.user.id),
       isVerified: authData.user.is_verified,
+      regionId: authData.user.region_id ?? null,
       timestamp: Date.now(),
     };
   } else {
@@ -63,6 +64,7 @@ export function storeAuthData(authData) {
       role: authData.role,
       isPublic: authData.is_public ?? false,
       userId: authData.user_id,
+      regionId: authData.region_id ?? null,
       timestamp: Date.now(),
     };
   }
@@ -118,6 +120,10 @@ export function getUserInfo() {
     isPublic: authData.isPublic ?? null,
     userId: authData.userId,
   };
+}
+
+export function getUserRegionId() {
+  return getAuthData()?.regionId ?? null;
 }
 
 export function onAuthChange(callback) {
