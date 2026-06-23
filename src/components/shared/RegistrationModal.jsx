@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff, RefreshCw } from "lucide-react";
 import { studentApi, regionsApi } from "@/lib/api";
-import { storeAuthData } from "@/lib/auth";
 
 function generateStrongPassword() {
   const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -71,8 +70,8 @@ const FormField = ({
 
 // ─── main component ──────────────────────────────────────────────────────────
 
-const RegistrationModal = ({ open, onOpenChange, onRegister, initialRole = null }) => {
-  // step: "role" | "student" | "verify" | "success"
+const RegistrationModal = ({ open, onOpenChange, initialRole = null }) => {
+  // step: "role" | "student" | "success"
   const [step, setStep] = useState("role");
   const [formData, setFormData] = useState({
     email: "",
@@ -83,11 +82,8 @@ const RegistrationModal = ({ open, onOpenChange, onRegister, initialRole = null 
     region: "",
   });
   const [regions, setRegions] = useState([]);
-  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resendLoading, setResendLoading] = useState(false);
   const [error, setError] = useState("");
-  const [info, setInfo] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [pwCopied, setPwCopied] = useState(false);
@@ -102,8 +98,6 @@ const RegistrationModal = ({ open, onOpenChange, onRegister, initialRole = null 
       setTimeout(() => setPwCopied(false), 2000);
     });
   };
-  const resendTimerRef = useRef(null);
-  const [resendCooldown, setResendCooldown] = useState(0);
 
   useEffect(() => {
     if (open && initialRole) {
@@ -119,27 +113,16 @@ const RegistrationModal = ({ open, onOpenChange, onRegister, initialRole = null 
     }
   }, [open]);
 
-  // countdown for resend button
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    resendTimerRef.current = setTimeout(
-      () => setResendCooldown((v) => v - 1),
-      1000
-    );
-    return () => clearTimeout(resendTimerRef.current);
-  }, [resendCooldown]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (error) setError("");
   };
 
-  // ── Step 1: submit registration ──────────────────────────────────────────
+  // ── submit registration ───────────────────────────────────────────────────
   const handleStudentSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setInfo("");
 
     if (!formData.email || !formData.full_name || !formData.password || !formData.contact_number) {
       setError("Please fill in all fields.");
@@ -168,9 +151,7 @@ const RegistrationModal = ({ open, onOpenChange, onRegister, initialRole = null 
         contact_number: formData.contact_number,
         region: formData.region ? Number(formData.region) : undefined,
       });
-      setInfo("Verification code sent to your email.");
-      setResendCooldown(60);
-      setStep("verify");
+      setStep("success");
     } catch (err) {
       setError(err.message || "Registration failed. Please try again.");
     } finally {
@@ -178,56 +159,12 @@ const RegistrationModal = ({ open, onOpenChange, onRegister, initialRole = null 
     }
   };
 
-  // ── Step 2: verify OTP ───────────────────────────────────────────────────
-  const handleVerifySubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setInfo("");
-
-    if (!otp.trim()) {
-      setError("Please enter the verification code.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const data = await studentApi.verifyEmail(formData.email, otp.trim());
-      storeAuthData(data);
-      onRegister?.(data);
-      setStep("success");
-    } catch (err) {
-      setError(err.message || "Invalid or expired code. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ── Resend OTP ───────────────────────────────────────────────────────────
-  const handleResendOtp = async () => {
-    if (resendCooldown > 0 || resendLoading) return;
-    setResendLoading(true);
-    setError("");
-    setInfo("");
-    try {
-      await studentApi.resendOtp(formData.email);
-      setInfo("A new verification code has been sent to your email.");
-      setResendCooldown(60);
-    } catch (err) {
-      setError(err.message || "Failed to resend code. Please try again.");
-    } finally {
-      setResendLoading(false);
-    }
-  };
-
   const resetAndClose = () => {
     setStep("role");
     setFormData({ email: "", full_name: "", password: "", confirmPassword: "", contact_number: "", region: "" });
-    setOtp("");
     setError("");
-    setInfo("");
     setShowPassword(false);
     setShowConfirmPassword(false);
-    setResendCooldown(0);
     onOpenChange(false);
   };
 
@@ -235,14 +172,12 @@ const RegistrationModal = ({ open, onOpenChange, onRegister, initialRole = null 
   const titles = {
     role: "Registration",
     student: "Register as student",
-    verify: "Verify your email",
-    success: "Welcome!",
+    success: "Account Created!",
   };
   const descriptions = {
     role: "Select how you want to register",
     student: "Fill in your details to create an account",
-    verify: `Enter the 6-digit code sent to ${formData.email}`,
-    success: "Your account has been verified. You are now logged in.",
+    success: "Your account has been created. You can now log in.",
   };
 
   return (
@@ -421,73 +356,6 @@ const RegistrationModal = ({ open, onOpenChange, onRegister, initialRole = null 
           </form>
         )}
 
-        {/* ── OTP verification ── */}
-        {step === "verify" && (
-          <form onSubmit={handleVerifySubmit} className="space-y-4 mt-1">
-            {error && (
-              <div className="rounded-md border border-red-200 bg-red-50 p-3">
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            )}
-            {info && (
-              <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3">
-                <p className="text-sm text-emerald-700">{info}</p>
-              </div>
-            )}
-
-            <div className="space-y-1">
-              <label htmlFor="otp" className="text-sm font-medium text-[#15467d]">
-                Verification Code
-              </label>
-              <Input
-                id="otp"
-                type="text"
-                inputMode="numeric"
-                placeholder="Enter 6-digit code"
-                value={otp}
-                onChange={(e) => { setOtp(e.target.value); if (error) setError(""); }}
-                disabled={loading}
-                maxLength={6}
-                className="h-12 w-full border-2 border-[#c8d4e0] text-center text-xl tracking-[0.4em] focus:border-[#88a9c3] focus:ring-2 focus:ring-[#88a9c3]/20"
-              />
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={handleResendOtp}
-                disabled={resendCooldown > 0 || resendLoading}
-                className="text-sm font-medium text-[#15467d] underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {resendCooldown > 0
-                  ? `Resend code in ${resendCooldown}s`
-                  : resendLoading
-                  ? "Sending..."
-                  : "Resend code"}
-              </button>
-            </div>
-
-            <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => { setStep("student"); setError(""); setInfo(""); }}
-                disabled={loading}
-                className="w-full rounded-full border-2 border-[#15467d] px-6 py-2 text-[#15467d] hover:bg-[#88a9c3] hover:text-white hover:border-[#88a9c3] sm:w-auto"
-              >
-                Back
-              </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-full bg-[#398ffc] px-6 py-2 text-white hover:bg-[#2878dc] disabled:opacity-50 sm:w-auto"
-              >
-                {loading ? "Verifying..." : "Verify"}
-              </Button>
-            </DialogFooter>
-          </form>
-        )}
-
         {/* ── success ── */}
         {step === "success" && (
           <div className="flex flex-col items-center gap-4 py-4">
@@ -503,8 +371,8 @@ const RegistrationModal = ({ open, onOpenChange, onRegister, initialRole = null 
               </svg>
             </div>
             <p className="text-center text-gray-600">
-              Your account has been successfully created and verified.
-              You are now logged in!
+              Your account has been successfully created.
+              Please use the Login button to sign in.
             </p>
             <Button
               onClick={resetAndClose}
