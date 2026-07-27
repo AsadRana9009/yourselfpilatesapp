@@ -1,8 +1,19 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { User, Mail, Phone, Shield, FileText, Clock, Globe, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { User, Mail, Phone, Shield, FileText, Clock, Globe, Users, Trash2 } from "lucide-react";
 import { userApi, studentsApi } from "@/lib/api";
+import { clearAuthData } from "@/lib/auth";
 
 const getRoleLabel = (role, isPublic) => {
   if (role === "professor" || role === "teacher") {
@@ -23,7 +34,7 @@ const Field = ({ icon: Icon, label, value }) => (
       <span className="text-[10px] font-medium uppercase tracking-wide text-[#88a9c3]">
         {label}
       </span>
-      <span className="mt-0.5 text-[13px] text-[#15467d] break-words">
+      <span className="mt-0.5 text-[13px] text-[#15467d] wrap-break-word">
         {value || <span className="italic text-[#88a9c3]">Not provided</span>}
       </span>
     </div>
@@ -31,16 +42,22 @@ const Field = ({ icon: Icon, label, value }) => (
 );
 
 const SettingsModal = ({ open }) => {
+  const router = useRouter();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [myStudents, setMyStudents] = useState([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setLoading(true);
     setError(null);
+    setDeleteError(null);
+    setConfirmDeleteOpen(false);
     userApi
       .getMe()
       .then((data) => {
@@ -56,6 +73,33 @@ const SettingsModal = ({ open }) => {
       .catch(() => setError("Failed to load profile data."))
       .finally(() => setLoading(false));
   }, [open]);
+
+  const handleDeleteAccount = async () => {
+    console.log("handleDeleteAccount called");
+    if (deleteLoading) return;
+    console.log("Setting delete loading state...");
+    setDeleteLoading(true);
+    setDeleteError(null);
+
+
+    try {
+      console.log("Deleting account...");
+      await userApi.deleteMe();
+      clearAuthData();
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      setDeleteError(
+        err?.response?.data?.detail ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to delete your account."
+      );
+    } finally {
+      setDeleteLoading(false);
+      setConfirmDeleteOpen(false);
+    }
+  };
 
   if (!open) return null;
 
@@ -126,9 +170,59 @@ const SettingsModal = ({ open }) => {
                 )}
               </div>
             )}
+
+            <div className="pt-3 pb-4 border-t border-[#e8eef4] mt-2">
+              {deleteError && (
+                <p className="mb-3 text-xs text-red-500">{deleteError}</p>
+              )}
+              <Button
+                type="button"
+                variant="destructive"
+                className="w-full gap-2 rounded-full bg-[#b42318] text-white hover:bg-[#991b1b]"
+                onClick={() => setConfirmDeleteOpen(true)}
+                disabled={deleteLoading}
+              >
+                <Trash2 className="h-4 w-4" />
+                {deleteLoading ? "Deleting..." : "Delete Account"}
+              </Button>
+            </div>
           </>
         )}
       </div>
+
+      <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <DialogContent
+          className="sm:max-w-md bg-white"
+          onMouseDownCapture={(e) => e.stopPropagation()}
+        >
+          <DialogHeader>
+            <DialogTitle className="text-[#b42318]">Delete Account</DialogTitle>
+            <DialogDescription className="text-sm text-gray-600">
+              This will permanently delete your account and all of your profile data. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setConfirmDeleteOpen(false)}
+              disabled={deleteLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={deleteLoading}
+              className="bg-[#b42318] text-white hover:bg-[#991b1b]"
+            >
+              {deleteLoading ? "Deleting..." : "Delete Account"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

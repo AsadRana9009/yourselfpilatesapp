@@ -85,6 +85,11 @@ export const userApi = {
 
     return mePromise;
   },
+
+  deleteMe: async () => {
+    const { data } = await api.delete("/api/user/me/");
+    return data;
+  },
 };
 
 export const subscriptionsApi = {
