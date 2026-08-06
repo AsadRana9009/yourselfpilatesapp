@@ -29,10 +29,11 @@ const RegistrationButton = ({ variant = "desktop", className = "" }) => {
       ? Intl.DateTimeFormat()
           .resolvedOptions()
           .locale.split("-")[1]
-          ?.toLowerCase() || "us"
-      : "us";
+          ?.toLowerCase() || "pt"
+      : "pt";
 
-  const appStoreUrl = `https://apps.apple.com/${countryCode}/app/yourself-pilates/id6752496161`;
+    const appStoreUrl = "https://apps.apple.com/pt/app/yourself-pilates/id6752496161";
+
 
   useEffect(() => {
     setUser(getUserInfo());

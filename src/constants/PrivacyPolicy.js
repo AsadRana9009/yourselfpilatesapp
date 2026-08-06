@@ -1,11 +1,10 @@
 /**
- * Política de Privacidade — YourSelf Pilates
- * Conteúdo fornecido pelo cliente
- * Última atualização: 14 de Novembro de 2025
+ * Privacy Policy - Yourself Pilates
+ * Updated for Google Play and GDPR-style disclosure
  */
 
 export const PRIVACY_POLICY = {
-  lastUpdated: "14 de Novembro de 2025",
+  lastUpdated: "27 de Julho de 2026",
 
   sections: [
     {
@@ -13,185 +12,193 @@ export const PRIVACY_POLICY = {
       content: [
         {
           type: "heading",
+          text: "Introdução",
         },
         {
           type: "paragraph",
-          text: "Este website pertence e é operado por YOURSELF PILATES, titular de BIGPIRES IMPORTS LDA, com sede em Largo dos Heróis de Naulila 16 17, Loja 15, 2500-107 Caldas da Rainha, NIF 515004405, Telefone +351 927078842 e email: yourselfpilates@gmail.com. O uso dos serviços e a navegação no site implicam a aceitação plena dos presentes Termos e Condições, celebrados ao abrigo da legislação portuguesa em vigor.",
-        },
-      ],
-    },
-
-    {
-      id: "conteudo-acesso",
-      content: [
-        {
-          type: "heading",
-          text: "CONTEÚDO E ACESSO",
+          text: "Esta Política de Privacidade descreve como a YOURSELF PILATES, operada pela BIGPIRES IMPORTS LDA, recolhe, utiliza, partilha e protege os dados pessoais dos utilizadores da aplicação e do website. Ao usar os nossos serviços, o utilizador aceita as práticas descritas nesta política.",
         },
         {
           type: "paragraph",
-          text: "Os presentes Termos e Condições regulam a prestação de serviços pela Yourself Pilates, designadamente o aluguer temporário de espaço equipado para a prática de Pilates, por hora ou pacote de horas, mediante agendamento prévio e pagamento antecipado.",
+          text: "Dados de contacto do responsável: YOURSELF PILATES, BIGPIRES IMPORTS LDA, Largo dos Heróis de Naulila 16 17, Loja 15, 2500-107 Caldas da Rainha, Portugal, email yourselfpilates@gmail.com.",
         },
       ],
     },
-
     {
-      id: "utilizacao-espaco",
+      id: "dados-recolhidos",
       content: [
         {
           type: "heading",
-          text: "Utilização do Espaço",
+          text: "Dados Recolhidos",
+        },
+        {
+          type: "paragraph",
+          text: "Recolhemos apenas os dados necessários para criar e gerir a conta do utilizador, prestar os serviços e cumprir obrigações legais. Os dados podem incluir:",
         },
         {
           type: "list",
           items: [
-            "Utilizar o espaço exclusivamente para a prática de Pilates, de forma responsável e segura.",
-            "Respeitar os horários de reserva agendados.",
-            "Zelar pela boa utilização dos equipamentos, devendo comunicar qualquer anomalia imediatamente.",
-            "Não subalugar, ceder ou partilhar o espaço com terceiros sem autorização prévia.",
+            "Identificação: nome completo, email, número de contacto e, quando aplicável, fotografia de perfil.",
+            "Dados de conta e perfil: função, região, biografia, preferências e estado da conta.",
+            "Dados de reserva e utilização: marcações, histórico de reservas, aulas, pacotes adquiridos e horas restantes.",
+            "Dados de comunicação: mensagens enviadas por email, formulários ou apoio ao cliente.",
+            "Dados técnicos: endereço IP, logs de acesso, identificadores técnicos e informação de dispositivo necessária para segurança e funcionamento da plataforma.",
+            "Dados de pagamento e faturação, quando aplicável, para processar compras e cumprir obrigações fiscais e contabilísticas.",
           ],
         },
       ],
     },
-
     {
-      id: "reservas-pagamento",
+      id: "finalidades",
       content: [
         {
           type: "heading",
-          text: "Reservas e Pagamentos",
+          text: "Finalidade da Recolha",
+        },
+        {
+          type: "paragraph",
+          text: "Tratamos os dados pessoais para as seguintes finalidades:",
         },
         {
           type: "list",
           items: [
-            "As reservas devem ser realizadas através do site oficial ou canais autorizados.",
-            "O pagamento será efetuado antecipadamente por sessão ou pacote, via cartão de crédito, transferência bancária, MBWay ou outros meios disponíveis na plataforma.",
-            "O contrato de prestação de serviços considera-se celebrado no momento da confirmação do pagamento por parte da Yourself Pilates, nos termos do artigo 405.º do Código Civil.",
+            "Criar e autenticar contas de utilizador.",
+            "Gerir reservas, aulas, pacotes e acesso aos serviços.",
+            "Comunicar confirmações, alterações, suporte e informações operacionais.",
+            "Processar pagamentos, faturação e registos contabilísticos.",
+            "Cumprir obrigações legais e regulatórias.",
+            "Prevenir fraude, abuso e uso indevido da plataforma.",
+            "Melhorar o desempenho, a segurança e a experiência do serviço.",
           ],
         },
       ],
     },
-
     {
-      id: "cancelamentos",
+      id: "base-legal",
       content: [
         {
           type: "heading",
-          text: "Cancelamentos e Livre Resolução",
+          text: "Base Legal",
+        },
+        {
+          type: "paragraph",
+          text: "Tratamos os seus dados com base nas seguintes bases legais do RGPD, conforme aplicável:",
         },
         {
           type: "list",
           items: [
-            "O cliente poderá cancelar ou remarcar uma sessão com mínimo de 24 horas de antecedência, sem qualquer penalização.",
-            "Cancelamentos com menos de 24 horas ou não comparência resultam na perda do valor pago.",
-            "Nos termos do Decreto-Lei n.º 24/2014, quando aplicável (ex.: compra de pacotes online sem agendamento imediato), o cliente tem 14 dias de calendário para exercer o direito de livre resolução, desde que não tenha usufruído do serviço durante esse período.",
+            "Execução de contrato: para criar a conta, gerir reservas e prestar os serviços solicitados.",
+            "Cumprimento de obrigação legal: para faturação, contabilidade, fiscalidade e obrigações regulatórias.",
+            "Interesse legítimo: para garantir segurança, prevenção de fraude, manutenção técnica e melhoria do serviço.",
+            "Consentimento: quando solicitado para comunicações opcionais ou outras finalidades específicas.",
           ],
         },
       ],
     },
-
     {
-      id: "conduta",
+      id: "partilha",
       content: [
         {
           type: "heading",
-          text: "Utilização do Espaço e Conduta",
+          text: "Partilha de Dados",
+        },
+        {
+          type: "paragraph",
+          text: "Não vendemos os seus dados pessoais. Só partilhamos informação quando necessário para operar o serviço ou quando a lei o exige.",
         },
         {
           type: "list",
           items: [
-            "O cliente compromete-se a utilizar o espaço exclusivamente para práticas de Pilates, de forma individual ou com acompanhantes previamente autorizados.",
-            "O uso do espaço fora do horário reservado, ou por terceiros não registados, não é permitido.",
-            "O cliente deverá seguir as instruções de segurança, higiene e bom uso dos equipamentos fornecidas pela Yourself Pilates.",
+            "Prestadores de serviços tecnológicos, como alojamento, base de dados, email e manutenção da aplicação.",
+            "Prestadores de pagamento e faturação, quando o utilizador realiza compras ou reservas pagas.",
+            "Autoridades públicas, tribunais ou entidades fiscais, quando exista obrigação legal.",
+            "Parceiros operacionais estritamente necessários para a prestação do serviço.",
           ],
         },
       ],
     },
-
     {
-      id: "responsabilidade",
+      id: "retencao",
       content: [
         {
           type: "heading",
-          text: "Danos, Responsabilidade e Seguro",
+          text: "Retenção de Dados",
+        },
+        {
+          type: "paragraph",
+          text: "Conservamos os dados apenas durante o período necessário para cumprir as finalidades descritas nesta política. Quando o utilizador pede a eliminação da conta, apagamos os dados associados à conta, exceto os dados que tenham de ser mantidos por obrigação legal, por motivos de segurança, prevenção de fraude ou cumprimento contabilístico e fiscal.",
+        },
+        {
+          type: "paragraph",
+          text: "Os registos de faturação e documentação legal podem ser conservados pelo período exigido pela lei aplicável.",
+        },
+      ],
+    },
+    {
+      id: "seguranca",
+      content: [
+        {
+          type: "heading",
+          text: "Segurança",
+        },
+        {
+          type: "paragraph",
+          text: "Aplicamos medidas técnicas e organizacionais adequadas para proteger os dados pessoais contra acesso não autorizado, alteração, divulgação ou destruição indevida.",
         },
         {
           type: "list",
           items: [
-            "A Yourself Pilates dispõe de seguro de responsabilidade civil profissional, conforme exigido pela legislação aplicável.",
-            "O cliente é responsável por danos causados por uso negligente dos equipamentos ou infraestruturas.",
-            "A Yourself Pilates não se responsabiliza por objetos pessoais deixados no espaço, salvo em caso de dolo ou negligência grave.",
+            "Comunicação através de ligações seguras quando disponíveis.",
+            "Controlo de acesso aos sistemas e dados.",
+            "Proteção de credenciais e palavras-passe através de mecanismos de autenticação.",
+            "Monitorização e manutenção para reduzir riscos de segurança.",
           ],
         },
       ],
     },
-
     {
-      id: "seguranca-acesso",
+      id: "direitos",
       content: [
         {
           type: "heading",
-          text: "Acessibilidade e Segurança",
+          text: "Direitos do Utilizador",
+        },
+        {
+          type: "paragraph",
+          text: "Nos termos da legislação aplicável, o utilizador pode exercer os seguintes direitos em relação aos seus dados pessoais:",
         },
         {
           type: "list",
           items: [
-            "A entrada no espaço está sujeita à apresentação de confirmação de reserva.",
-            "A Yourself Pilates reserva-se o direito de impedir o acesso ou permanência de utilizadores que violem estas condições ou coloquem em risco a segurança de terceiros.",
-            "As instalações cumprem os requisitos mínimos de segurança, higiene e acessibilidade previstos na legislação em vigor.",
+            "Acesso aos dados pessoais que tratamos.",
+            "Retificação de dados incorretos ou incompletos.",
+            "Eliminação da conta e dos dados associados, quando aplicável.",
+            "Limitação do tratamento.",
+            "Oposição ao tratamento baseado em interesse legítimo.",
+            "Portabilidade dos dados, quando aplicável.",
+            "Retirada do consentimento, quando o tratamento se basear em consentimento.",
           ],
+        },
+        {
+          type: "paragraph",
+          text: "Para eliminar a sua conta, o utilizador pode usar o link público https://www.yourselfpilates.pt/delete-account ou o pedido de eliminação dentro da aplicação. Quando necessário, também pode contactar-nos por email para receber apoio no processo.",
         },
       ],
     },
-
     {
-      id: "dados-pessoais",
+      id: "contacto",
       content: [
         {
           type: "heading",
-          text: "Proteção de Dados Pessoais",
+          text: "Contacto",
         },
         {
-          type: "list",
-          items: [
-            "Os dados recolhidos são tratados em conformidade com o Regulamento (UE) 2016/679 (RGPD), e utilizados exclusivamente para efeitos de reserva, faturação e comunicação.",
-            "O cliente tem o direito de aceder, corrigir, eliminar ou limitar o tratamento dos seus dados, bastando para isso contactar através dos canais disponibilizados no site.",
-            "Os dados não serão partilhados com terceiros, exceto por obrigação legal.",
-          ],
-        },
-      ],
-    },
-
-    {
-      id: "alteracoes-termos",
-      content: [
-        {
-          type: "heading",
-          text: "Alterações aos Termos e Condições",
+          type: "paragraph",
+          text: "Se tiver dúvidas sobre esta Política de Privacidade ou pretender exercer os seus direitos, contacte-nos através de yourselfpilates@gmail.com.",
         },
         {
-          type: "list",
-          items: [
-            "A Yourself Pilates reserva-se o direito de atualizar estes Termos e Condições a qualquer momento.",
-            "As alterações entrarão em vigor após a sua publicação no website, sendo aplicáveis apenas a reservas futuras.",
-          ],
-        },
-      ],
-    },
-
-    {
-      id: "legislacao-foro",
-      content: [
-        {
-          type: "heading",
-          text: "Legislação Aplicável e Foro Competente",
-        },
-        {
-          type: "list",
-          items: [
-            "Os presentes Termos regem-se pela legislação portuguesa.",
-            "Para a resolução de qualquer litígio emergente da interpretação ou execução deste contrato, é competente o Tribunal da Comarca da sede da Yourself Pilates, com expressa renúncia a qualquer outro.",
-          ],
+          type: "paragraph",
+          text: "Também pode enviar um pedido para a nossa morada: YOURSELF PILATES, BIGPIRES IMPORTS LDA, Largo dos Heróis de Naulila 16 17, Loja 15, 2500-107 Caldas da Rainha, Portugal.",
         },
       ],
     },

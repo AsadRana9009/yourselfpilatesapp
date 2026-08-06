@@ -33,12 +33,11 @@ const HeroSection = () => {
   };
 
   const countryCode =
-    Intl.DateTimeFormat()
-      .resolvedOptions()
-      .locale.split("-")[1]
-      ?.toLowerCase() || "us";
+    Intl.DateTimeFormat().resolvedOptions().locale.split("-")[1]?.toLowerCase() || "pt";
 
-  const appStoreUrl = `https://apps.apple.com/${countryCode}/app/yourself-pilates/id6752496161`;
+  const appStoreUrl = "https://apps.apple.com/pt/app/yourself-pilates/id6752496161";
+
+
 
   return (
     <section className="bg-gradient-primary relative overflow-hidden py-16 md:py-20 lg:py-3">
