@@ -6,6 +6,7 @@ import Navigation from "./Navigation";
 import MobileMenu from "./MobileMenu";
 import Logo from "./Logo";
 import PhoneLink from "./PhoneLink";
+import LocationSwitcher from "./LocationSwitcher";
 import LoginButton from "@/components/shared/LoginButton";
 import RegistrationButton from "@/components/shared/RegistrationButton";
 import UserCredits from "@/components/shared/UserCredits";
@@ -25,6 +26,8 @@ const Header = () => {
         <div className="flex flex-col items-center space-y-3 py-6 md:hidden">
           <Logo variant="mobile" />
 
+          <LocationSwitcher variant="mobile" className="w-full max-w-[220px]" />
+
           <UserCredits variant="mobile" />
 
           <div className="grid w-full grid-cols-2 gap-3">
@@ -42,6 +45,8 @@ const Header = () => {
         <div className="hidden flex-col items-center space-y-2 py-6 md:flex xl:hidden">
           <Logo variant="tablet" />
 
+          <LocationSwitcher variant="tablet" className="max-w-[240px]" />
+
           <div className="flex w-full items-center justify-between gap-4">
             <Navigation />
             <div className="flex items-center gap-1">
@@ -55,6 +60,8 @@ const Header = () => {
 
         <div className="hidden items-center justify-between py-4 xl:flex">
           <Logo variant="desktop" />
+
+          <LocationSwitcher variant="desktop" />
 
           <div className="flex items-center gap-6">
             <Navigation />

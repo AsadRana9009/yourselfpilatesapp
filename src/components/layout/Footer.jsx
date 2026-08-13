@@ -187,16 +187,16 @@ export function Footer() {
             </div>
 
             <p className="text-xs opacity-75">
-              {"© "}
-              {currentYear} Yourself Pilates. Powered by{" "}
+              {currentYear} YourSelf Pilates All Rights Reserved {"© "}
+              Developed by{" "}
               <a
-                href="https://oonify.pt/"
+                href="https://www.anmconnection.pt"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-semibold underline-offset-4 hover:underline"
                 style={{ color: COLORS.brandHover }}
               >
-                OONIFY
+                ANM Connection - Mkt &amp; Web Specialists
               </a>
             </p>
 

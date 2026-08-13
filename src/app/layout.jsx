@@ -4,6 +4,8 @@ import Header from "@/components/layout/Header";
 import WhatsappButton from "@/components/shared/WhatsappButton";
 import BookingButton from "@/components/shared/BookingButton";
 import Footer from "@/components/layout/Footer";
+import { LocationProvider } from "@/context/LocationContext";
+import LocationModal from "@/components/shared/LocationModal";
 
 // Primary Font: Roboto - Weights: 300, 400, 500, 900
 const roboto = Roboto({
@@ -48,17 +50,22 @@ export default function RootLayout({ children }) {
         className={`${roboto.variable} ${ptSans.variable} ${kodchasan.variable} ${montserrat.variable} antialiased`}
         suppressHydrationWarning
       >
-        {/* Header Component */}
-        <Header />
+        <LocationProvider>
+          {/* Gym Location Selection Popup */}
+          <LocationModal />
 
-        {/* WhatsApp Floating Button */}
-        <WhatsappButton />
-        {/* Booking Floating Button (visible when logged in) */}
-        <BookingButton />
-        {children}
+          {/* Header Component */}
+          <Header />
 
-        {/* Footer Component */}
-        <Footer />
+          {/* WhatsApp Floating Button */}
+          <WhatsappButton />
+          {/* Booking Floating Button (visible when logged in) */}
+          <BookingButton />
+          {children}
+
+          {/* Footer Component */}
+          <Footer />
+        </LocationProvider>
       </body>
     </html>
   );

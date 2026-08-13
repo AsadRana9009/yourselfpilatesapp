@@ -2,7 +2,8 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { CONTACT_INFO } from "@/constants/ContactInfo";
+
+import { useLocation } from "@/context/LocationContext";
 
 const LocationPinIcon = () => (
   <svg
@@ -16,6 +17,8 @@ const LocationPinIcon = () => (
 );
 
 const ContactLocation = ({ showTitle = true, firstLine, secondLine }) => {
+  const { selectedLocation } = useLocation();
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.2 } },
@@ -26,9 +29,11 @@ const ContactLocation = ({ showTitle = true, firstLine, secondLine }) => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
   };
 
-  // default title lines if not passed
-  const defaultFirstLine = "Localizada no centro";
-  const defaultSecondLine = "das Caldas da Rainha";
+  // default title lines if not passed (based on the selected location)
+  const [defaultFirstLine, defaultSecondLine] = selectedLocation.titleLines ?? [
+    "Localizada em",
+    selectedLocation.name,
+  ];
 
   return (
     <section
@@ -63,9 +68,9 @@ const ContactLocation = ({ showTitle = true, firstLine, secondLine }) => {
             className="map-container h-[300px] w-full overflow-hidden rounded-[26px] shadow-lg sm:h-[200px] md:h-[400px]"
           >
             <iframe
-              src={CONTACT_INFO.maps.embedUrl}
-              title={CONTACT_INFO.maps.label}
-              aria-label={CONTACT_INFO.maps.label}
+              src={selectedLocation.maps.embedUrl}
+              title={selectedLocation.maps.label}
+              aria-label={selectedLocation.maps.label}
               className="h-full w-full border-0"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
@@ -75,7 +80,7 @@ const ContactLocation = ({ showTitle = true, firstLine, secondLine }) => {
           {/* Address Text Below Map*/}
           <motion.div variants={itemVariants} className="text-center">
             <h3 className="font-heading text-sm font-normal text-[#15467d] md:text-base">
-              {CONTACT_INFO.address.fullAddress}
+              {selectedLocation.address.fullAddress}
             </h3>
           </motion.div>
         </motion.div>

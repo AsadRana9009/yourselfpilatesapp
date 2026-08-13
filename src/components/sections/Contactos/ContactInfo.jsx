@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { PhoneIcon } from "@/components/icons/CustomIcons";
-import { CONTACT_INFO } from "@/constants/ContactInfo";
+import { useLocation } from "@/context/LocationContext";
 
 const EmailIcon = () => (
   <svg
@@ -21,6 +21,8 @@ const EmailIcon = () => (
 );
 
 const ContactInfo = () => {
+  const { selectedLocation } = useLocation();
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.2 } },
@@ -52,7 +54,7 @@ const ContactInfo = () => {
           >
             {" "}
             <a
-              href={`tel:${CONTACT_INFO.phone.formatted}`}
+              href={`tel:${selectedLocation.phone.formatted}`}
               className="group mx-auto flex items-center space-x-6"
             >
               <div className="flex-shrink-0">
@@ -68,16 +70,16 @@ const ContactInfo = () => {
                   className="mb-2 text-xl font-semibold"
                   style={{ color: textColor }}
                 >
-                  {CONTACT_INFO.phone.label}
+                  {selectedLocation.phone.label}
                 </h3>
                 <p
                   className="mb-1 text-2xl font-bold"
                   style={{ color: textColor }}
                 >
-                  {CONTACT_INFO.phone.number}
+                  {selectedLocation.phone.number}
                 </p>
                 <p className="text-xs" style={{ color: textColor }}>
-                  {CONTACT_INFO.phone.note}
+                  {selectedLocation.phone.note}
                 </p>
               </div>
             </a>
@@ -90,7 +92,7 @@ const ContactInfo = () => {
           >
             {" "}
             <a
-              href={`mailto:${CONTACT_INFO.email.address}`}
+              href={`mailto:${selectedLocation.email.address}`}
               className="group mx-auto flex items-center space-x-6"
             >
               <div className="flex-shrink-0">
@@ -103,13 +105,13 @@ const ContactInfo = () => {
                   className="mb-2 text-xl font-semibold"
                   style={{ color: textColor }}
                 >
-                  {CONTACT_INFO.email.label}
+                  {selectedLocation.email.label}
                 </h3>
                 <p
                   className="text-2xl font-bold break-all"
                   style={{ color: textColor }}
                 >
-                  {CONTACT_INFO.email.address}
+                  {selectedLocation.email.address}
                 </p>
               </div>
             </a>
