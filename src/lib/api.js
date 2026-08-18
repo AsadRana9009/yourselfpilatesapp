@@ -152,8 +152,12 @@ export const subscriptionsApi = {
 };
 
 export const bookingApi = {
-  getAvailableSlots: async (date) => {
-    const { data } = await api.get(`/api/booking/bookings/available_slots/?date=${date}`);
+  // `regionId` narrows the answer to one location — an hour taken in Caldas is
+  // still free in Oeiras. Omitted when the flow has not asked for a region yet.
+  getAvailableSlots: async (date, regionId = null) => {
+    const params = new URLSearchParams({ date });
+    if (regionId) params.set('region', regionId);
+    const { data } = await api.get(`/api/booking/bookings/available_slots/?${params}`);
     return data;
   },
 

@@ -1,11 +1,5 @@
 import { Roboto, PT_Sans, Kodchasan, Montserrat } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/layout/Header";
-import WhatsappButton from "@/components/shared/WhatsappButton";
-import BookingButton from "@/components/shared/BookingButton";
-import Footer from "@/components/layout/Footer";
-import { LocationProvider } from "@/context/LocationContext";
-import LocationModal from "@/components/shared/LocationModal";
 
 // Primary Font: Roboto - Weights: 300, 400, 500, 900
 const roboto = Roboto({
@@ -43,6 +37,12 @@ export const metadata = {
   },
 };
 
+/**
+ * Root layout: fonts and global styles only.
+ *
+ * The public site's header/footer chrome lives in `(main)/layout.jsx` so that
+ * full-screen routes (the hidden TV Show screens) can opt out of it.
+ */
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -50,22 +50,7 @@ export default function RootLayout({ children }) {
         className={`${roboto.variable} ${ptSans.variable} ${kodchasan.variable} ${montserrat.variable} antialiased`}
         suppressHydrationWarning
       >
-        <LocationProvider>
-          {/* Gym Location Selection Popup */}
-          <LocationModal />
-
-          {/* Header Component */}
-          <Header />
-
-          {/* WhatsApp Floating Button */}
-          <WhatsappButton />
-          {/* Booking Floating Button (visible when logged in) */}
-          <BookingButton />
-          {children}
-
-          {/* Footer Component */}
-          <Footer />
-        </LocationProvider>
+        {children}
       </body>
     </html>
   );

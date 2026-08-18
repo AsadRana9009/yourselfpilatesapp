@@ -1,0 +1,468 @@
+/*
+ * Hidden TV Show screen — a fixed, non-scrolling kiosk layout.
+ *
+ * Written as plain CSS (rather than utilities) because globals.css sets
+ * aggressive base typography for the marketing site that this screen must not
+ * inherit. Sizes use clamp() so one layout fits a 1080p TV and a 4K one.
+ */
+
+.tv-screen {
+  --tv-bg: #0a1a33;
+  --tv-bg-deep: #061224;
+  --tv-panel: rgba(255, 255, 255, 0.04);
+  --tv-panel-border: rgba(148, 187, 233, 0.18);
+  --tv-accent: #3d7fd4;
+  --tv-accent-soft: rgba(61, 127, 212, 0.22);
+  --tv-text: #eaf1fa;
+  --tv-muted: #9db4d2;
+
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: clamp(200px, 16vw, 280px) 1fr;
+  grid-template-rows: 1fr auto;
+  grid-template-areas:
+    "rail main"
+    "footer footer";
+  overflow: hidden;
+  color: var(--tv-text);
+  background:
+    radial-gradient(120% 90% at 80% 0%, #12305c 0%, transparent 60%),
+    linear-gradient(160deg, var(--tv-bg) 0%, var(--tv-bg-deep) 100%);
+  font-family: var(--font-kodchasan), var(--font-roboto), system-ui, sans-serif;
+}
+
+/* ---------------- Left rail ---------------- */
+
+.tv-rail {
+  grid-area: rail;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: clamp(1.25rem, 2.2vh, 2.5rem) 1rem;
+  border-right: 1px solid var(--tv-panel-border);
+  background: linear-gradient(180deg, rgba(20, 52, 99, 0.55) 0%, rgba(6, 18, 36, 0.2) 100%);
+  text-align: center;
+}
+
+.tv-rail__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tv-rail__mark {
+  width: clamp(64px, 6vw, 110px);
+  height: auto;
+  opacity: 0.95;
+}
+
+.tv-rail__wordmark {
+  width: clamp(110px, 10vw, 190px);
+  height: auto;
+}
+
+/* The lockup's tagline bar, reproduced as text so it stays sharp at any
+   screen size instead of being baked into the logo bitmap. */
+.tv-rail__tagline {
+  margin: 0.1rem 0 0;
+  padding: 0.32em 1em;
+  border-radius: 999px;
+  background: var(--tv-text);
+  color: #0b1f3a;
+  font-size: clamp(0.42rem, 0.52vw, 0.66rem);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.tv-rail__clock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.tv-clock {
+  font-size: clamp(2.2rem, 3.4vw, 4rem);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tv-date {
+  font-size: clamp(0.6rem, 0.72vw, 0.9rem);
+  letter-spacing: 0.22em;
+  color: var(--tv-muted);
+}
+
+/* Current booking, shown under the clock for the length of the slot only. */
+
+.tv-session {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.9rem;
+}
+
+.tv-session__label {
+  margin: 0.5rem 0 0;
+  font-size: clamp(0.5rem, 0.6vw, 0.72rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--tv-muted);
+}
+
+.tv-session__name {
+  margin: 0;
+  max-width: 100%;
+  font-size: clamp(0.95rem, 1.25vw, 1.6rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--tv-text);
+  overflow-wrap: anywhere;
+}
+
+.tv-session__slot {
+  margin: 0;
+  font-size: clamp(0.72rem, 0.9vw, 1.1rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--tv-accent);
+}
+
+.tv-rail__quote {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.tv-rail__rule {
+  width: 46px;
+  height: 1px;
+  background: var(--tv-panel-border);
+}
+
+.tv-quote {
+  margin: 0;
+  font-size: clamp(0.72rem, 0.85vw, 1.05rem);
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--tv-text);
+}
+
+.tv-quote__author {
+  margin: 0;
+  font-size: clamp(0.55rem, 0.62vw, 0.78rem);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--tv-accent);
+}
+
+/* ---------------- Main ---------------- */
+
+.tv-main {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 1.2vh, 1.1rem);
+  min-height: 0;
+  padding: clamp(1rem, 2.2vh, 2rem) clamp(1rem, 2vw, 2.5rem);
+}
+
+.tv-label {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-size: clamp(0.55rem, 0.68vw, 0.82rem);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--tv-muted);
+}
+
+.tv-label__rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--tv-panel-border), transparent);
+}
+
+.tv-video {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--tv-panel-border);
+  border-radius: 10px;
+  background: #000;
+}
+
+.tv-video__el {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tv-video__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--tv-muted);
+  font-size: clamp(0.8rem, 1vw, 1.1rem);
+}
+
+.tv-video__caption {
+  position: absolute;
+  left: clamp(0.75rem, 1.2vw, 1.5rem);
+  bottom: clamp(0.75rem, 1.2vh, 1.5rem);
+  padding: 0.4em 0.9em;
+  border-radius: 999px;
+  background: rgba(6, 18, 36, 0.78);
+  backdrop-filter: blur(6px);
+  font-size: clamp(0.55rem, 0.68vw, 0.85rem);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* ---------------- Bottom cards ---------------- */
+
+.tv-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(0.75rem, 1.4vw, 1.75rem);
+  flex: 0 0 auto;
+}
+
+.tv-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.tv-card__body {
+  display: flex;
+  align-items: center;
+  min-height: clamp(88px, 13vh, 165px);
+  padding: clamp(0.75rem, 1.4vh, 1.5rem);
+  border: 1px solid var(--tv-panel-border);
+  border-radius: 10px;
+  background: var(--tv-panel);
+}
+
+.tv-card--accent .tv-card__body {
+  border-color: rgba(61, 127, 212, 0.5);
+  background: linear-gradient(120deg, rgba(61, 127, 212, 0.3) 0%, rgba(20, 52, 99, 0.35) 100%);
+}
+
+/* Music */
+
+.tv-music {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 1.2vw, 1.5rem);
+  width: 100%;
+  min-width: 0;
+}
+
+.tv-music__badge {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: clamp(42px, 3.6vw, 68px);
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: var(--tv-accent-soft);
+  color: var(--tv-text);
+}
+
+.tv-music__meta {
+  min-width: 0;
+}
+
+.tv-music__title {
+  margin: 0;
+  font-size: clamp(0.85rem, 1.05vw, 1.4rem);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tv-music__sub {
+  margin: 0.2em 0 0;
+  font-size: clamp(0.6rem, 0.72vw, 0.9rem);
+  color: var(--tv-muted);
+}
+
+/* Welcome banner (shown while a booking is running) */
+
+.tv-welcome {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.tv-welcome__message {
+  margin: 0;
+  font-size: clamp(1rem, 1.5vw, 2rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.tv-welcome__teacher {
+  margin: 0;
+  font-size: clamp(0.68rem, 0.85vw, 1.05rem);
+  color: var(--tv-muted);
+}
+
+.tv-welcome__track {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  margin: 0.15em 0 0;
+  font-size: clamp(0.58rem, 0.68vw, 0.85rem);
+  color: var(--tv-accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Booking / QR */
+
+.tv-booking {
+  gap: clamp(0.85rem, 1.4vw, 1.75rem);
+}
+
+.tv-booking__qr {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: clamp(74px, 7vw, 130px);
+  aspect-ratio: 1;
+  padding: 6px;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.tv-booking__qr img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.tv-booking__qr-placeholder {
+  width: 60%;
+  height: 60%;
+  color: #0b1f3a;
+}
+
+.tv-booking__meta {
+  min-width: 0;
+}
+
+.tv-booking__eyebrow {
+  margin: 0;
+  font-size: clamp(0.52rem, 0.62vw, 0.78rem);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--tv-muted);
+}
+
+.tv-booking__title {
+  margin: 0.15em 0 0;
+  font-size: clamp(1rem, 1.35vw, 1.85rem);
+  font-weight: 700;
+}
+
+.tv-booking__sub {
+  margin: 0.25em 0 0;
+  font-size: clamp(0.6rem, 0.72vw, 0.92rem);
+  color: var(--tv-muted);
+}
+
+/* ---------------- Footer ---------------- */
+
+.tv-footer {
+  grid-area: footer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 3vw, 3.5rem);
+  padding: clamp(0.5rem, 1.1vh, 1.1rem) 1rem;
+  border-top: 1px solid var(--tv-panel-border);
+  background: rgba(6, 18, 36, 0.6);
+  font-size: clamp(0.72rem, 1vw, 1.35rem);
+  color: var(--tv-muted);
+}
+
+.tv-footer__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.tv-footer__item strong {
+  color: var(--tv-text);
+  font-weight: 700;
+}
+
+.tv-icon {
+  width: 55%;
+  height: 55%;
+}
+
+.tv-icon-sm {
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+}
+
+/* ---------------- Music play/stop ---------------- */
+
+/* The only control on the screen, so it is sized to stay tappable on a TV
+   remote or a phone rather than to match the surrounding label text. */
+.tv-music__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 0.5em 1.1em;
+  border: 1px solid var(--tv-accent);
+  border-radius: 999px;
+  background: var(--tv-accent-soft);
+  color: var(--tv-text);
+  font-family: inherit;
+  font-size: clamp(0.65rem, 0.8vw, 1rem);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.tv-music__toggle:hover,
+.tv-music__toggle:focus-visible {
+  background: var(--tv-accent);
+  color: #06121f;
+}
+
+.tv-music__toggle:active {
+  transform: scale(0.97);
+}
+
+.tv-welcome__track .tv-music__toggle {
+  margin-left: 0.6em;
+  padding: 0.3em 0.8em;
+}

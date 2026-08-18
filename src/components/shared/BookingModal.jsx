@@ -163,17 +163,17 @@ const BookingModal = ({ open, onOpenChange, role, isPublic, onSuccess }) => {
       .finally(() => setProfessorsLoading(false));
   }, [open, isProStudent]);
 
-  // Load available slots when date changes
+  // Load available slots when the date — or the chosen location — changes
   useEffect(() => {
     if (!date) { setAvailableSlots([]); setTimeSlot(""); return; }
     setSlotsLoading(true);
     setTimeSlot("");
     bookingApi
-      .getAvailableSlots(date)
+      .getAvailableSlots(date, regionId || null)
       .then((slots) => setAvailableSlots(slots))
       .catch(() => setAvailableSlots(TIME_SLOTS.map((s) => ({ value: s, display: s }))))
       .finally(() => setSlotsLoading(false));
-  }, [date]);
+  }, [date, regionId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
