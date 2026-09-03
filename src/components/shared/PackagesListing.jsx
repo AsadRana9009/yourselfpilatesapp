@@ -47,6 +47,7 @@ const PackagesListing = ({ title, subtitle } = {}) => {
   const [userRole, setUserRole] = useState(null);
   const [userIsPublic, setUserIsPublic] = useState(null);
   const [packsRefreshSeq, setPacksRefreshSeq] = useState(0);
+  const [brokenImages, setBrokenImages] = useState(() => new Set());
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
@@ -487,7 +488,7 @@ const PackagesListing = ({ title, subtitle } = {}) => {
                   className="flex h-full w-full max-w-xs flex-col overflow-hidden rounded-xl border-none bg-linear-to-b from-sky-900/30 via-[#f1f5f8] to-white p-0 shadow-none transition-shadow duration-300 hover:shadow-lg"
                 >
                   <div className="relative h-[200px] w-full shrink-0 overflow-hidden bg-gray-200">
-                    {pkg.image ? (
+                    {pkg.image && !brokenImages.has(pkg.image) ? (
                       <Image
                         src={pkg.image}
                         alt={pkg.name}
@@ -495,9 +496,13 @@ const PackagesListing = ({ title, subtitle } = {}) => {
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         unoptimized
-                        onError={(e) => {
-                          console.error("Image failed to load:", pkg.image);
-                          e.target.style.display = "none";
+                        onError={() => {
+                          setBrokenImages((prev) => {
+                            if (prev.has(pkg.image)) return prev;
+                            const next = new Set(prev);
+                            next.add(pkg.image);
+                            return next;
+                          });
                         }}
                       />
                     ) : (

@@ -18,11 +18,7 @@ const LocationSwitcher = ({ variant = "desktop", className = "" }) => {
       className={`flex flex-col items-center gap-1 ${className}`}
       style={{ fontFamily: "var(--font-accent)" }}
     >
-      <span
-        className={`leading-none tracking-wide text-[#88a9c3] ${
-          isCompact ? "text-[9px]" : "text-[11px]"
-        }`}
-      >
+      <span className="text-[11px] leading-none tracking-wide text-[#88a9c3]">
         Clique para mudar de local
       </span>
 

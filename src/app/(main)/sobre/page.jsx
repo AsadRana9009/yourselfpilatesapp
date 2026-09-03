@@ -23,7 +23,7 @@ export const metadata = {
  */
 const SobrePage = () => {
   return (
-    <main className="min-h-screen pt-20 md:pt-15 lg:pt-0">
+    <main className="min-h-screen pt-[var(--header-h)] xl:pt-0">
       <AboutHero />
       <SectionDivider title="Disponibilizamos" />
       <FeaturesGrid />

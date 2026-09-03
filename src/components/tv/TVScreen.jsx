@@ -1,6 +1,6 @@
 "use client";
 
-import { Music2, Pause, Phone, Play, QrCode, Wifi } from "lucide-react";
+import { Music2, Phone, QrCode, Wifi } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -64,7 +64,6 @@ export default function TVScreen({ token, initialData }) {
   const [clock, setClock] = useState(() => toDate(initialData.server_time));
   const [videoIndex, setVideoIndex] = useState(0);
   const [trackIndex, setTrackIndex] = useState(0);
-  const [musicOn, setMusicOn] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState(null);
 
   const audioRef = useRef(null);
@@ -216,23 +215,22 @@ export default function TVScreen({ token, initialData }) {
     };
   }, [screen.booking_url]);
 
-  // --- Music: never starts on its own; it follows the user's choice ---
-  // The video is muted and plays by itself, but sound is not something to
-  // impose on a room. `musicOn` is that choice, and the playlist keeps
-  // honouring it as one track rolls into the next.
+  // --- Music: starts on its own and keeps looping through the playlist,
+  //     exactly like the video does ---
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
-    if (!musicOn) {
-      audio.pause();
-      return;
-    }
-    // A rejected play() means the browser blocked it despite the click, so
-    // fall back to "off" rather than showing a Stop button over silence.
-    audio.play().catch(() => setMusicOn(false));
-  }, [musicOn, currentTrack?.id]);
+    if (!audio) return undefined;
 
-  const toggleMusic = useCallback(() => setMusicOn((on) => !on), []);
+    audio.play().catch(() => {
+      // Some browsers block unmuted autoplay until the page has seen a user
+      // gesture. Once that first gesture happens, try again.
+      const retry = () => {
+        audio.play().catch(() => {});
+      };
+      document.addEventListener("click", retry, { once: true });
+      document.addEventListener("touchstart", retry, { once: true });
+    });
+  }, [currentTrack?.id]);
 
   // --- Keep the TV awake ---
   useEffect(() => {
@@ -376,7 +374,6 @@ export default function TVScreen({ token, initialData }) {
                   {currentTrack && (
                     <p className="tv-welcome__track">
                       <Music2 className="tv-icon-sm" /> {currentTrack.title}
-                      <MusicToggle on={musicOn} onToggle={toggleMusic} />
                     </p>
                   )}
                 </div>
@@ -390,16 +387,9 @@ export default function TVScreen({ token, initialData }) {
                       {currentTrack ? currentTrack.title : "Sem música"}
                     </p>
                     <p className="tv-music__sub">
-                      {!currentTrack
-                        ? "Nenhuma faixa carregada"
-                        : musicOn
-                          ? "A tocar…"
-                          : "Toque em Tocar para ouvir"}
+                      {currentTrack ? "A tocar…" : "Nenhuma faixa carregada"}
                     </p>
                   </div>
-                  {currentTrack && (
-                    <MusicToggle on={musicOn} onToggle={toggleMusic} />
-                  )}
                 </div>
               )}
             </div>
@@ -448,36 +438,19 @@ export default function TVScreen({ token, initialData }) {
         )}
       </footer>
 
-      {/* Drives the playlist. Deliberately no `autoPlay` — the Tocar/Parar
-          button above is the only thing that starts it. */}
+      {/* Drives the playlist: autoplays and rolls from one track into the
+          next, wrapping back to the first — same as the video above. */}
       {currentTrack && (
         <audio
           ref={audioRef}
           key={currentTrack.id}
           src={currentTrack.src}
+          autoPlay
           onEnded={nextTrack}
           onError={nextTrack}
         />
       )}
     </div>
-  );
-}
-
-function MusicToggle({ on, onToggle }) {
-  return (
-    <button
-      type="button"
-      className="tv-music__toggle"
-      onClick={onToggle}
-      aria-pressed={on}
-    >
-      {on ? (
-        <Pause className="tv-icon-sm" />
-      ) : (
-        <Play className="tv-icon-sm" />
-      )}
-      <span>{on ? "Parar" : "Tocar"}</span>
-    </button>
   );
 }
 

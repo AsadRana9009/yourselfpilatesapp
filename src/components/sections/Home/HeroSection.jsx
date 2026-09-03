@@ -96,7 +96,7 @@ const HeroSection = () => {
                     alt="App Store Badge"
                     width={140}
                     height={42}
-                    className="object-contain"
+                    className="object-contain h-auto"
                   />
                 </a>
 
@@ -111,7 +111,7 @@ const HeroSection = () => {
                     alt="Google Play Badge"
                     width={150}
                     height={46}
-                    className="object-contain"
+                    className="object-contain h-auto"
                   />
                 </a>
               </div>

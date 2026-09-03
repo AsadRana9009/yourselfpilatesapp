@@ -2,8 +2,9 @@
 
 import React from "react";
 import { useScrollHeader } from "@/hooks/useScrollHeader";
+import { useNavItems } from "@/hooks/useNavItems";
 import Navigation from "./Navigation";
-import MobileMenu from "./MobileMenu";
+import HeaderDrawer from "./HeaderDrawer";
 import Logo from "./Logo";
 import PhoneLink from "./PhoneLink";
 import LocationSwitcher from "./LocationSwitcher";
@@ -13,51 +14,34 @@ import UserCredits from "@/components/shared/UserCredits";
 import "./style.css";
 
 const Header = () => {
-  const showHeader = useScrollHeader();
+  const isScrolled = useScrollHeader();
+  const { isAuth } = useNavItems();
 
   return (
     <header
-      className={`fixed top-0 left-0 z-50 w-full bg-transparent transition-transform duration-300 ${
-        showHeader ? "translate-y-0" : "-translate-y-full"
+      className={`fixed top-0 left-0 z-50 w-full transition-colors duration-300 ${
+        isScrolled
+          ? "bg-white/90 shadow-md backdrop-blur-md"
+          : "bg-transparent"
       }`}
     >
-      <div className="w-full px-6 lg:px-12">
+      {/*
+        Mobile + tablet (< xl): one compact bar of fixed height. Navigation,
+        location, contacts and sign-up live in <HeaderDrawer />, so the bar
+        never grows past --header-h no matter what is in the menu.
+      */}
+      <div className="flex h-[var(--header-h)] items-center justify-between gap-3 px-4 sm:px-6 xl:hidden">
+        <Logo variant="compact" />
 
-        <div className="flex flex-col items-center space-y-3 py-6 md:hidden">
-          <Logo variant="mobile" />
-
-          <LocationSwitcher variant="mobile" className="w-full max-w-[220px]" />
-
+        <div className="flex items-center gap-2">
           <UserCredits variant="mobile" />
-
-          <div className="grid w-full grid-cols-2 gap-3">
-            <PhoneLink variant="mobile" />
-
-            <div className="flex flex-col items-stretch gap-[2px]">
-              <LoginButton variant="mobile" />
-              <RegistrationButton variant="mobile" />
-            </div>
-
-            <MobileMenu />
-          </div>
+          {isAuth && <RegistrationButton variant="tablet" />}
+          <HeaderDrawer />
         </div>
+      </div>
 
-        <div className="hidden flex-col items-center space-y-2 py-6 md:flex xl:hidden">
-          <Logo variant="tablet" />
-
-          <LocationSwitcher variant="tablet" className="max-w-[240px]" />
-
-          <div className="flex w-full items-center justify-between gap-4">
-            <Navigation />
-            <div className="flex items-center gap-1">
-              <UserCredits variant="tablet" />
-              <LoginButton variant="tablet" />
-              <RegistrationButton variant="tablet" />
-              <PhoneLink variant="tablet" />
-            </div>
-          </div>
-        </div>
-
+      {/* Desktop (xl+) — unchanged layout */}
+      <div className="hidden w-full px-6 lg:px-12 xl:block">
         <div className="hidden items-center justify-between py-4 xl:flex">
           <Logo variant="desktop" />
 
@@ -73,7 +57,6 @@ const Header = () => {
             </div>
           </div>
         </div>
-
       </div>
     </header>
   );

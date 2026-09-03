@@ -76,7 +76,7 @@ const WhatsappButtonWithDialog = () => {
               alt="Logo"
               width={260}
               height={80}
-              className="mx-auto mb-4 w-65"
+              className="mx-auto mb-4 w-65 h-auto"
             />
           </DialogHeader>
 

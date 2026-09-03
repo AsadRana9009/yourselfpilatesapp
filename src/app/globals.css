@@ -472,3 +472,19 @@
 @utility bg-gradient-button {
   background: linear-gradient(200deg, var(--primary) 0%, var(--accent) 100%);
 }
+
+/*
+ * Header height for every viewport below the desktop breakpoint, exposed as a
+ * variable so the header bar, the nav drawer and each page's top spacing all
+ * read the same number instead of hard-coding pixels that drift apart.
+ * Desktop (xl+) keeps its own intrinsic height and is not driven by this.
+ */
+:root {
+  --header-h: 64px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-h: 72px;
+  }
+}

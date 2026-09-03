@@ -3,25 +3,17 @@
 import { useState, useEffect } from "react";
 
 /**
- * Custom hook to handle header visibility on scroll
- * Shows header only when at the top of the page (scrollY === 0)
- * Hides header when scrolled down, doesn't show when scrolling up
- * @returns {boolean} - Whether the header should be visible
+ * Custom hook to track whether the page has been scrolled away from the top.
+ * Used by the sticky header to switch from a transparent to a solid background.
+ * @param {number} threshold - Scroll offset (px) after which the page counts as scrolled
+ * @returns {boolean} - Whether the page is scrolled past the threshold
  */
-export function useScrollHeader() {
-  const [showHeader, setShowHeader] = useState(true);
+export function useScrollHeader(threshold = 8) {
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      const currentY = window.scrollY;
-
-      // Only show header when at the top of the page
-      if (currentY === 0) {
-        setShowHeader(true);
-      } else {
-        // Hide header when scrolled down (any amount)
-        setShowHeader(false);
-      }
+      setIsScrolled(window.scrollY > threshold);
     };
 
     // Check initial scroll position
@@ -29,7 +21,7 @@ export function useScrollHeader() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [threshold]);
 
-  return showHeader;
+  return isScrolled;
 }

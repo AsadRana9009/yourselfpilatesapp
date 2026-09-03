@@ -11,6 +11,12 @@ export const LOGO_CONFIG = {
     height: 40,
     className: "h-8 w-auto",
   },
+  // Mobile + tablet header bar: one variant that scales at the md breakpoint.
+  compact: {
+    width: 160,
+    height: 54,
+    className: "h-8 w-auto md:h-10",
+  },
   tablet: {
     width: 150,
     height: 50,
