@@ -129,6 +129,12 @@
   overflow-wrap: anywhere;
 }
 
+.tv-session__teacher {
+  margin: 0;
+  font-size: clamp(0.6rem, 0.72vw, 0.92rem);
+  color: var(--tv-muted);
+}
+
 .tv-session__slot {
   margin: 0;
   font-size: clamp(0.72rem, 0.9vw, 1.1rem);

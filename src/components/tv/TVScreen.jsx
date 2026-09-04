@@ -221,15 +221,27 @@ export default function TVScreen({ token, initialData }) {
     const audio = audioRef.current;
     if (!audio) return undefined;
 
-    audio.play().catch(() => {
-      // Some browsers block unmuted autoplay until the page has seen a user
-      // gesture. Once that first gesture happens, try again.
-      const retry = () => {
-        audio.play().catch(() => {});
-      };
-      document.addEventListener("click", retry, { once: true });
-      document.addEventListener("touchstart", retry, { once: true });
-    });
+    // Browsers always allow autoplay when a media element starts muted.
+    // Starting muted (so play() is granted) and unmuting right after
+    // playback begins is not retroactively blocked, so this plays with
+    // sound with zero clicks on Chrome/Edge/Firefox.
+    audio.muted = true;
+    audio
+      .play()
+      .then(() => {
+        audio.muted = false;
+      })
+      .catch(() => {
+        // A few browsers (mainly Safari) still block this outright.
+        // Fall back to unlocking on the first user gesture, if one ever
+        // comes.
+        const retry = () => {
+          audio.muted = false;
+          audio.play().catch(() => {});
+        };
+        document.addEventListener("click", retry, { once: true });
+        document.addEventListener("touchstart", retry, { once: true });
+      });
   }, [currentTrack?.id]);
 
   // --- Keep the TV awake ---
@@ -312,6 +324,9 @@ export default function TVScreen({ token, initialData }) {
               <span className="tv-rail__rule" />
               <p className="tv-session__label">Em aula</p>
               {sessionName && <p className="tv-session__name">{sessionName}</p>}
+              {nowPlaying.teacher && (
+                <p className="tv-session__teacher">Com {nowPlaying.teacher}</p>
+              )}
               {nowPlaying.time_slot && (
                 <p className="tv-session__slot">{nowPlaying.time_slot}</p>
               )}
@@ -445,7 +460,6 @@ export default function TVScreen({ token, initialData }) {
           ref={audioRef}
           key={currentTrack.id}
           src={currentTrack.src}
-          autoPlay
           onEnded={nextTrack}
           onError={nextTrack}
         />
